@@ -1,5 +1,7 @@
 # Capture Helper
 
+> 🌐 Version française : [LISEZMOI.md](LISEZMOI.md)
+
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
 **OBS-inspired** (no GUI) capture + processing + publishing layer for the AI Helpers stack. Library-shaped: cross-platform camera / microphone / screen / window / application-audio sources, composable filter chains, multi-source mixing, and emit-to-publish primitives for live YouTube / Twitch RTMP, HLS, and Icecast — designed to plug into [video-helper](https://github.com/warith-harchaoui/video-helper) and [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) for downstream frame / PCM contracts.
