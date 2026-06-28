@@ -35,3 +35,7 @@ dev = ["pytest>=7"]
 
 [project.urls]
 Homepage = "https://github.com/warith-harchaoui/capture-helper"
+
+[tool.setuptools.packages.find]
+include = ["capture_helper*"]
+exclude = ["tests*", "assets*"]
