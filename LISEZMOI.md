@@ -2,6 +2,8 @@
 
 [🇫🇷](LISEZMOI.md) · [🇬🇧](README.md)
 
+[![CI](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#)
+
 `Capture Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
 Couche **inspirée d'OBS** (sans GUI) pour la capture + le traitement + la diffusion dans la stack AI Helpers. En forme de bibliothèque : sources caméra / microphone / écran / fenêtre / audio applicatif multiplateformes, chaînes de filtres composables, mixage multi-sources, et primitives emit-to-publish pour YouTube live / Twitch RTMP, HLS, et Icecast — conçue pour se brancher dans [video-helper](https://github.com/warith-harchaoui/video-helper) et [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) au contrat frame / PCM en aval.
