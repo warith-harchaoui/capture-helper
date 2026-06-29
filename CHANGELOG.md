@@ -7,7 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-29
+
+INPUT layer landing. v0.1.0 brings the device selector and the two live
+iterators so a camera / microphone composes with the rest of the suite
+without glue code.
+
+### Added
+
+- `pick_source(kind, *, name_substring=..., index=...)` — select a
+  single device from the catalog returned by `list_sources`, with
+  case-insensitive name-substring and exact-index filters. Raises
+  `ValueError` (with a hint to call `list_sources`) when nothing
+  matches.
+- `iter_camera_frames(source, *, width=..., height=..., output_width=...,
+  output_height=..., fps=..., pad_color=..., max_frames=...)` —
+  synchronous generator yielding `(H, W, 3)` BGR uint8 numpy arrays
+  via ffmpeg + `-f rawvideo -pix_fmt bgr24`. **Same shape and dtype as
+  `video_helper.extract_frames`** so consumers wired for the file-based
+  path drop in unchanged. Supports scale-fit-and-pad output sizing
+  (aspect-preserving) when both output dimensions are set; aspect-
+  preserving single-axis scale when only one is set; native frame size
+  otherwise.
+- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True,
+  frame_ms=20, max_frames=...)` — async generator yielding `MicFrame`
+  typed dicts (`t_abs_s`, `pcm` as float32 in [-1, 1], `voiced=None`).
+  ffmpeg's libswresample handles the resample with an anti-aliasing
+  low-pass at the new Nyquist. **Same shape as
+  `podcast_helper.extract_audio_stream`**.
+- `MicFrame` typed dict — re-exported via the package root; structurally
+  identical to `podcast_helper.streaming.PcmFrame`.
+- `ffmpeg_input_args(source)` — exposed low-level helper that builds
+  the per-OS `-f <driver> -i <spec>` pair (avfoundation `idx:none` /
+  `none:idx`; v4l2 `/dev/videoN`; dshow `video=...` / `audio=...`;
+  pulse / alsa name). Useful for users wiring their own ffmpeg
+  pipelines.
+
+### Changed
+
+- `version` bumped to `0.1.0` in `pyproject.toml`; description updated
+  to reflect the INPUT-layer release.
+- Added `numpy>=1.23` to `dependencies` (used by the new camera /
+  microphone reshape paths).
+
+### Tests
+
+- `tests/test_v01_features.py` — 21 unit tests covering `pick_source`
+  filter logic, `ffmpeg_input_args` per-driver argv (avfoundation,
+  v4l2, dshow, pulse), and the iterators' validation paths. Real-device
+  capture is deliberately not exercised here (would require hardware
+  on CI).
+
 ### Documentation
+
+
 
 - Establish suite-wide Python coding-style mandate in `CONTRIBUTING.md`:
   numpy-style docstrings on every function and class, module-level
