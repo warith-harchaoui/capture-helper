@@ -27,6 +27,8 @@ from capture_helper import list_sources
 
 for s in list_sources("microphone"):
     print(f"[{s['index']}] {s['name']} (driver={s['driver']})")
+    # [0] Built-in Microphone (driver=avfoundation)
+    # [1] BlackHole 16ch (driver=avfoundation)
 ```
 
 ## Roadmap
@@ -41,6 +43,8 @@ for s in list_sources("microphone"):
 | **v0.5.0** | OUTPUT virtuel | `output_to_virtual_camera(...)` (pyvirtualcam etc.), `output_to_virtual_mic(...)` |
 | **v0.6.0** | Intégration OBS | Client OBS WebSocket (réagir aux événements scène / stream) |
 
+Pour un cookbook complet (chaîne d'entrée ffmpeg par OS, capture d'instantané, aperçu du design v0.1.0, roadmap), voir [📋 EXAMPLES.md](EXAMPLES.md).
+
 ## Installation
 
 ```bash
@@ -51,6 +55,8 @@ pip install --force-reinstall --no-cache-dir \
 Il vous faut `ffmpeg` dans le PATH pour que l'énumération de périphériques retourne quelque chose :
 
 - macOS 🍎 : `brew install ffmpeg`
+
+  (installez `brew` grâce à [brew.sh](https://brew.sh/))
 - Ubuntu 🐧 : `sudo apt install ffmpeg`
 - Windows 🪟 : récupérer un build sur [ffmpeg.org/download.html](https://ffmpeg.org/download.html) et l'ajouter au `PATH`.
 

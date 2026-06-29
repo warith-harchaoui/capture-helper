@@ -33,3 +33,12 @@ htmlcov/
 
 # Test artifacts
 capture_tests/
+
+# --- Credentials (mandate 2026-06-29) -----------------------------------
+# Never commit real config files; the *.example template IS tracked.
+*config.json
+*config.yaml
+*config.yml
+!*config.json.example
+!*config.yaml.example
+!*config.yml.example
