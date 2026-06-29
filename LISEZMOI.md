@@ -8,7 +8,7 @@
 
 Couche **inspirée d'OBS** (sans GUI) pour la capture + le traitement + la diffusion dans la stack AI Helpers. En forme de bibliothèque : sources caméra / microphone / écran / fenêtre / audio applicatif multiplateformes, chaînes de filtres composables, mixage multi-sources, et primitives emit-to-publish pour YouTube live / Twitch RTMP, HLS, et Icecast — conçue pour se brancher dans [video-helper](https://github.com/warith-harchaoui/video-helper) et [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) au contrat frame / PCM en aval.
 
-[🕸️ AI Helpers](https://harchaoui.org/warith/ai-helpers)
+[🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
 [![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
