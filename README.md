@@ -1,6 +1,6 @@
 # Capture Helper
 
-> 🌐 Version française : [LISEZMOI.md](LISEZMOI.md)
+[🇫🇷](LISEZMOI.md) · [🇬🇧](README.md)
 
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
