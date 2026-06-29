@@ -3,40 +3,72 @@ Capture Helper
 ==============
 
 OBS-inspired (no GUI) **capture + process + publish** library for the
-AI Helpers stack. v0.0.1 is a scaffold: only the public types and
-device enumeration are exposed; the iter / mix / publish layers land
-in subsequent releases.
+AI Helpers stack. v0.1.0 ships the **INPUT layer**: cross-platform
+device enumeration + selection (cameras / microphones) and a pair of
+iterators that bridge those devices to the rest of the suite's
+contracts.
 
-What it will be
----------------
-The same philosophy as OBS but as a Python library:
-
-- **Inputs**: cross-platform camera / microphone / screen / window /
-  application-audio sources.
-- **Process**: composable filter chains (noise gate, gain, chroma key,
-  scale, color correct) + multi-source mixing.
-- **Publish**: RTMP to YouTube Live / Twitch, HLS, Icecast (live
-  podcasts), virtual webcam / mic outputs, OBS WebSocket bidirectional
-  control.
-
-What it ships *today* (v0.0.1)
-------------------------------
-- :class:`SourceKind` literal
-- :class:`Source` typed dict
+What ships in v0.1.0
+--------------------
+- :class:`SourceKind` — literal ``"camera"`` | ``"microphone"``.
+- :class:`Source` — typed dict describing one device.
+- :class:`MicFrame` — typed dict for one PCM frame (mirrors
+  :class:`podcast_helper.streaming.PcmFrame`).
 - :func:`list_sources` — best-effort cross-platform device enumeration
-  via ``ffmpeg -list_devices`` (avfoundation / v4l2 / dshow).
-  Returns `[]` rather than raising on unsupported platforms.
+  via ``ffmpeg -list_devices`` (avfoundation / v4l2 / dshow / pulse /
+  alsa). Returns ``[]`` rather than raising on unsupported platforms.
+- :func:`pick_source` — pick the first device of a given kind matching
+  optional ``name_substring`` / ``index`` filters.
+- :func:`iter_camera_frames` — synchronous generator yielding
+  ``(H, W, 3)`` BGR uint8 numpy arrays — same shape and dtype as
+  :func:`video_helper.extract_frames`.
+- :func:`iter_mic_audio` — async generator yielding
+  :class:`MicFrame` — same shape as
+  :func:`podcast_helper.extract_audio_stream`.
 
-See the README for the per-version roadmap.
+What lands next
+---------------
+See :doc:`README` roadmap. v0.2.0 brings screen / window capture and a
+basic filter chain; v0.3.0 brings multi-source mixing; v0.4.0 brings
+RTMP / HLS / Icecast publish.
 
-Author:
-- Warith HARCHAOUI (https://linkedin.com/in/warith-harchaoui)
+Usage example
+-------------
+>>> import asyncio, capture_helper as ch
+>>> cam = ch.pick_source("camera")
+>>> for frame in ch.iter_camera_frames(cam, output_width=640, output_height=360,
+...                                    fps=30, max_frames=300):
+...     # frame.shape == (360, 640, 3), dtype uint8, BGR.
+...     do_something(frame)
+>>>
+>>> async def listen():
+...     mic = ch.pick_source("microphone")
+...     async for f in ch.iter_mic_audio(mic, target_sample_rate=16000, frame_ms=20):
+...         # f["pcm"].shape == (320,) — 20ms @ 16kHz mono.
+...         await asr.feed(f["pcm"])
+>>> asyncio.run(listen())
+
+Author
+------
+Warith HARCHAOUI — https://linkedin.com/in/warith-harchaoui
 """
 
 __all__ = [
+    # types
     "SourceKind",
     "Source",
+    "MicFrame",
+    # device enumeration + selection
     "list_sources",
+    "pick_source",
+    # low-level helper exposed because some callers want to splice the
+    # per-OS ffmpeg input args into their own pipelines.
+    "ffmpeg_input_args",
+    # live capture iterators
+    "iter_camera_frames",
+    "iter_mic_audio",
 ]
 
-from .sources import Source, SourceKind, list_sources
+from .camera import iter_camera_frames
+from .mic import MicFrame, iter_mic_audio
+from .sources import Source, SourceKind, ffmpeg_input_args, list_sources, pick_source

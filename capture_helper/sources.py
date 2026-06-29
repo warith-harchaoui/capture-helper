@@ -249,3 +249,144 @@ def list_sources(kind: SourceKind | None = None) -> List[Source]:
     if kind is not None:
         sources = [s for s in sources if s["kind"] == kind]
     return sources
+
+
+# ---------------------------------------------------------------------------
+# pick_source — convenience selector over the catalog returned by list_sources
+# ---------------------------------------------------------------------------
+
+
+def pick_source(
+    kind: SourceKind,
+    *,
+    name_substring: str | None = None,
+    index: int | None = None,
+) -> Source:
+    """
+    Pick a single capture device matching the given constraints.
+
+    Runs :func:`list_sources` for ``kind`` and applies each non-None
+    filter as a hard predicate. Returns the **first** remaining
+    candidate (OS-listing order — usually "built-in first, peripherals
+    after"). Raises ``ValueError`` if nothing matches.
+
+    Parameters
+    ----------
+    kind : ``"camera"`` | ``"microphone"``
+        Which kind of device to pick.
+    name_substring : str, optional
+        Case-insensitive substring filter against ``Source["name"]``.
+        Useful to disambiguate when several devices of the same kind
+        are present (``"BlackHole"``, ``"USB"``, ``"FaceTime"``, …).
+    index : int, optional
+        Exact match against ``Source["index"]``. When the OS reports
+        stable indices (avfoundation, dshow), this picks a specific
+        device unambiguously.
+
+    Returns
+    -------
+    Source
+        The chosen device.
+
+    Raises
+    ------
+    ValueError
+        If no device matches (either the catalog is empty, or every
+        candidate is filtered out by the constraints).
+
+    Examples
+    --------
+    >>> from capture_helper import pick_source
+    >>> cam = pick_source("camera")                  # first available camera
+    >>> mic = pick_source("microphone", name_substring="BlackHole")
+    >>> usb_cam = pick_source("camera", index=1)
+    """
+    # ``list_sources`` already applies the OS routing and is best-effort
+    # (returns ``[]`` rather than raising) — we re-raise here ourselves
+    # so callers don't silently get a "None source" downstream.
+    catalog = list_sources(kind)
+    if not catalog:
+        raise ValueError(
+            f"No {kind} devices available "
+            f"(is ffmpeg installed and on PATH? "
+            f"have you granted the OS permission to enumerate {kind}s?)"
+        )
+
+    def _matches(s: Source) -> bool:
+        # Case-insensitive substring lets the user type a fragment of
+        # the actual device name without worrying about exact casing.
+        if name_substring is not None and name_substring.lower() not in s["name"].lower():
+            return False
+        if index is not None and s["index"] != index:
+            return False
+        return True
+
+    matching = [s for s in catalog if _matches(s)]
+    if not matching:
+        raise ValueError(
+            f"No {kind} matches constraints "
+            f"(name_substring={name_substring!r}, index={index!r}). "
+            f"Catalog had {len(catalog)} candidate(s); "
+            f"call list_sources({kind!r}) to inspect."
+        )
+    return matching[0]
+
+
+# ---------------------------------------------------------------------------
+# Per-OS ffmpeg input string builder — used by camera / mic iterators
+# ---------------------------------------------------------------------------
+
+
+def ffmpeg_input_args(source: Source) -> list[str]:
+    """
+    Build the ffmpeg ``-f <driver> -i <spec>`` argument pair for ``source``.
+
+    Encapsulates the per-OS quirks so :mod:`capture_helper.camera` and
+    :mod:`capture_helper.mic` don't have to know about them:
+
+    - ``avfoundation`` (macOS) addresses devices as ``"<video_idx>:<audio_idx>"``
+      where ``"none"`` opts out of the other track.
+    - ``v4l2`` (Linux) uses the device path (``/dev/videoN``) reported
+      by :func:`list_sources`.
+    - ``pulse`` (Linux) and ``alsa`` (Linux) take the source/device name.
+    - ``dshow`` (Windows) prefixes the device name with ``video=`` or
+      ``audio=``.
+
+    Parameters
+    ----------
+    source : Source
+        A device dict returned by :func:`list_sources` /
+        :func:`pick_source`.
+
+    Returns
+    -------
+    list[str]
+        Two elements: ``["-f", "<driver>"]`` followed by ``["-i", "<spec>"]``
+        — ready to splice into an ffmpeg command line.
+
+    Raises
+    ------
+    ValueError
+        If the source's driver is unknown to this helper.
+    """
+    drv = source["driver"]
+    if drv == "avfoundation":
+        # AVFoundation: combined video/audio addressing. ``none`` opts
+        # out of the channel we're not capturing.
+        spec = f"{source['index']}:none" if source["kind"] == "camera" else f"none:{source['index']}"
+        return ["-f", "avfoundation", "-i", spec]
+    if drv == "v4l2":
+        # v4l2 takes the device path directly (``/dev/videoN`` per
+        # :func:`_list_linux_devices`).
+        return ["-f", "v4l2", "-i", source["name"]]
+    if drv == "dshow":
+        # DirectShow names are prefixed by the track kind.
+        kind_label = "video" if source["kind"] == "camera" else "audio"
+        return ["-f", "dshow", "-i", f"{kind_label}={source['name']}"]
+    if drv == "pulse":
+        # PulseAudio source name as reported by ``pactl list short sources``.
+        return ["-f", "pulse", "-i", source["name"]]
+    if drv == "alsa":
+        # ALSA hardware identifier (e.g. ``hw:1,0``).
+        return ["-f", "alsa", "-i", source["name"]]
+    raise ValueError(f"Unsupported source driver: {drv!r}")

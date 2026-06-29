@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "capture-helper"
-version = "0.0.1"
-description = "Capture Helper — OBS-inspired (no GUI) capture, processing, and publishing for the AI Helpers stack. v0.0.1 ships device enumeration; the iter / mix / publish layers land in subsequent releases."
+version = "0.1.0"
+description = "Capture Helper — OBS-inspired (no GUI) capture, processing, and publishing for the AI Helpers stack. v0.1.0 ships the INPUT layer: pick_source + iter_camera_frames + iter_mic_audio composing with video-helper / podcast-helper contracts; the mix / publish layers land in subsequent releases."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = {text = "BSD-3-Clause"}
@@ -28,6 +28,9 @@ classifiers = [
 ]
 dependencies = [
     "os-helper @ git+https://github.com/warith-harchaoui/os-helper.git@v1.3.0",
+    # numpy is needed by camera (frame reshape) and mic (PCM reshape).
+    # Lower bound matches the rest of the suite; no upper pin for now.
+    "numpy>=1.23",
 ]
 
 [project.optional-dependencies]
