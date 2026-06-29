@@ -23,10 +23,14 @@ What works today:
 - `list_sources(kind=None)` — cross-platform device enumeration via `ffmpeg -list_devices` (macOS avfoundation / Windows dshow / Linux v4l2 + pulse)
 
 ```python
-from capture_helper import list_sources
+import capture_helper as ch
 
-for s in list_sources("microphone"):
-    print(f"[{s['index']}] {s['name']} (driver={s['driver']})")
+for s in ch.list_sources():
+    print(f"{s['kind']:10s} [{s['index']}] {s['name']:40s} (driver={s['driver']})")
+    # camera     [0] FaceTime HD Camera                       (driver=avfoundation)
+    # camera     [1] iPhone Camera                            (driver=avfoundation)
+    # microphone [0] Built-in Microphone                      (driver=avfoundation)
+    # microphone [1] BlackHole 16ch                           (driver=avfoundation)
 ```
 
 ## Roadmap
@@ -41,6 +45,8 @@ for s in list_sources("microphone"):
 | **v0.5.0** | OUTPUT virtual | `output_to_virtual_camera(...)` (pyvirtualcam etc.), `output_to_virtual_mic(...)` |
 | **v0.6.0** | OBS integration | OBS WebSocket client (react to scene / stream events) |
 
+For a full cookbook (per-OS ffmpeg input string, snapshot capture, v0.1.0 design preview, roadmap), see [📋 EXAMPLES.md](EXAMPLES.md).
+
 ## Installation
 
 ```bash
@@ -51,6 +57,8 @@ pip install --force-reinstall --no-cache-dir \
 You need `ffmpeg` on PATH for device enumeration to return anything:
 
 - macOS 🍎 : `brew install ffmpeg`
+
+  (install `brew` thanks to [brew.sh](https://brew.sh/))
 - Ubuntu 🐧 : `sudo apt install ffmpeg`
 - Windows 🪟 : grab a build from [ffmpeg.org/download.html](https://ffmpeg.org/download.html) and add it to `PATH`.
 
