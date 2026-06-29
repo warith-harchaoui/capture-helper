@@ -30,7 +30,7 @@ What it ships *today* (v0.0.1)
 See the README for the per-version roadmap.
 
 Author:
-- Warith HARCHAOUI (https://harchaoui.org/warith)
+- Warith HARCHAOUI (https://linkedin.com/in/warith-harchaoui)
 """
 
 __all__ = [
