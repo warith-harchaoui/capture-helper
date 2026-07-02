@@ -22,8 +22,18 @@ Limitations
   and the abstraction is best designed once we have a real iter
   function consuming them. v0.2.0 target.
 
-Author:
-- Warith HARCHAOUI (https://linkedin.com/in/warith-harchaoui)
+Usage Example
+-------------
+>>> from capture_helper.sources import list_sources, pick_source, ffmpeg_input_args
+>>> for s in list_sources():
+...     print(s["kind"], s["index"], s["name"], s["driver"])
+>>> cam = pick_source("camera", name_substring="FaceTime")
+>>> ffmpeg_input_args(cam)          # doctest: +SKIP
+['-f', 'avfoundation', '-i', '0:none']
+
+Author
+------
+Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 """
 
 from __future__ import annotations

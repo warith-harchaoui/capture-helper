@@ -66,11 +66,63 @@ asyncio.run(listen())
 
 Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md).
 
+## Exposition multi-surface
+
+`capture-helper` expose la même couche INPUT à travers **cinq
+surfaces**, pour qu'elle se branche là où vous travaillez déjà —
+sans réécriture.
+
+| Surface | Installation | Point d'entrée | Cas d'usage |
+| --- | --- | --- | --- |
+| **Bibliothèque Python** | `pip install …@v0.2.0` | `import capture_helper as ch` | Notebooks, scripts, autres AI Helpers |
+| **CLI argparse** | *(sans extra)* | `capture-helper …` | Shells, cron, CI, CMD de container |
+| **CLI click** | extra `[cli]` | `capture-helper-click …` | Utilisateurs avec stack click-native (complétion, `--help` colorée) |
+| **HTTP FastAPI** | extra `[api]` | `uvicorn capture_helper.api:app` | Service derrière un reverse-proxy, clients JSON / multipart |
+| **Tools MCP** | extras `[api,mcp]` | `capture-helper-mcp` | Agents LLM (Claude Desktop, clients MCP custom) |
+
+```bash
+# CLI (argparse — toujours disponible)
+capture-helper list-sources
+capture-helper pick-source --kind camera --name FaceTime
+capture-helper capture-mic --output mic.wav --seconds 3
+
+# CLI (jumeau click — mêmes sous-commandes)
+capture-helper-click list-sources
+capture-helper-click capture-camera --output-dir frames/ \
+    --output-width 640 --output-height 360 --max-frames 30
+
+# Surface HTTP
+uvicorn capture_helper.api:app --host 0.0.0.0 --port 8000
+curl http://localhost:8000/sources
+curl -o frames.zip \
+    'http://localhost:8000/capture/camera?output_width=320&output_height=240&max_frames=10'
+
+# Surface MCP (FastAPI + fastapi-mcp)
+capture-helper-mcp   # sert les routes HTTP + l'endpoint MCP sur :8000
+
+# Docker (embarque FastAPI + MCP par défaut)
+docker build -t capture-helper .
+docker run --rm -p 8000:8000 capture-helper
+```
+
+Pour la vision GUI (mur d'appareils + cueing PGM/PVW, pas un miroir
+de la CLI), voir [📋 GUI.md](GUI.md). Pour un comparatif face à
+OpenCV / PyAV / sounddevice / OBS / FFmpeg CLI / GStreamer, voir
+[📋 LANDSCAPE.md](LANDSCAPE.md).
+
 ## Installation
 
 ```bash
 pip install --force-reinstall --no-cache-dir \
-  git+https://github.com/warith-harchaoui/capture-helper.git@v0.1.0
+  git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.0
+```
+
+Extras optionnels (choisissez ce qu'il vous faut) :
+
+```bash
+pip install 'capture-helper[cli] @ git+…@v0.2.0'         # CLI click
+pip install 'capture-helper[api] @ git+…@v0.2.0'         # HTTP FastAPI
+pip install 'capture-helper[api,mcp] @ git+…@v0.2.0'     # tools MCP
 ```
 
 Il vous faut `ffmpeg` dans le PATH pour que l'énumération de périphériques retourne quelque chose :

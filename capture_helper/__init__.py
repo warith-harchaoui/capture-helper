@@ -50,8 +50,15 @@ Usage example
 
 Author
 ------
-Warith HARCHAOUI — https://linkedin.com/in/warith-harchaoui
+Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 """
+
+# Package-level attribution — kept here so tooling that reads
+# ``capture_helper.__author__`` gets the canonical value. Email lives
+# ONLY here (never in module-level docstrings) to keep source files
+# scrapeable without leaking the mailbox to search engines.
+__author__ = "Warith Harchaoui, Ph.D."
+__email__ = "warithmetics@deraison.ai"
 
 __all__ = [
     # types
