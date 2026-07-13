@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual envs
+.env
+.venv/
+env/
+venv/
+
+# Pytest / coverage / mypy
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# Project-local scratchpad
+.private/
+
+# Test artifacts
+capture_tests/
+
+# --- Credentials (mandate 2026-06-29) -----------------------------------
+# Never commit real config files; the *.example template IS tracked.
+*config.json
+*config.yaml
+*config.yml
+!*config.json.example
+!*config.yaml.example
+!*config.yml.example
+
+# local-only tooling & secrets
+nomoreclaude.sh
+.secrets/
+.pypirc

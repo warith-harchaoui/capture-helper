@@ -1,0 +1,17 @@
+# capture-helper — pip requirements (portable, no `file://` deps).
+#
+# For a plain install:
+#     pip install -r requirements.txt
+#     pip install -e .           # capture-helper itself (editable) or `pip install .`
+#
+# Device backends (mic / camera) live behind extras and pull heavier
+# wheels (sounddevice / opencv); install them explicitly when needed:
+#     pip install '.[mic]'
+#     pip install '.[camera]'
+#
+# The os-helper pin is kept in lock-step with the release tag below.
+
+# --- Suite dependency -----------------------------------------------------
+os-helper>=1.4.2
+# --- Core runtime ---------------------------------------------------------
+numpy>=1.23
