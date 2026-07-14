@@ -38,8 +38,8 @@ import json
 import struct
 import sys
 import wave
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 
@@ -52,7 +52,6 @@ from . import (
     list_sources,
     pick_source,
 )
-
 
 # ---------------------------------------------------------------------------
 # Subcommand handlers
@@ -67,6 +66,19 @@ from . import (
 
 
 def _handle_list_sources(ns: argparse.Namespace) -> int:
+    """Handle the ``list-sources`` subcommand.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.kind`` (``"camera"`` /
+        ``"microphone"`` / ``None``).
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+    """
     # ``list_sources`` returns a list[Source] — dump as JSON so shell
     # pipelines can pipe into ``jq``.
     sources = list_sources(ns.kind)
@@ -75,6 +87,23 @@ def _handle_list_sources(ns: argparse.Namespace) -> int:
 
 
 def _handle_pick_source(ns: argparse.Namespace) -> int:
+    """Handle the ``pick-source`` subcommand.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.kind`` / ``ns.name`` / ``ns.index``.
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+
+    Raises
+    ------
+    ValueError
+        Propagated from :func:`pick_source` when no device matches.
+    """
     # ``pick_source`` raises ``ValueError`` if nothing matches — argparse
     # turns that into a non-zero exit with a clean stderr traceback.
     src = pick_source(ns.kind, name_substring=ns.name, index=ns.index)
@@ -83,6 +112,23 @@ def _handle_pick_source(ns: argparse.Namespace) -> int:
 
 
 def _handle_input_args(ns: argparse.Namespace) -> int:
+    """Handle the ``input-args`` subcommand.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.kind`` / ``ns.name`` / ``ns.index``.
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+
+    Raises
+    ------
+    ValueError
+        Propagated from :func:`pick_source` when no device matches.
+    """
     # First resolve a Source (same filters as ``pick-source``), then
     # print the argv fragment ready to splice into an ffmpeg command.
     src = pick_source(ns.kind, name_substring=ns.name, index=ns.index)
@@ -106,6 +152,24 @@ def _write_raw_frame(path: Path, frame: np.ndarray) -> None:
 
 
 def _handle_capture_camera(ns: argparse.Namespace) -> int:
+    """Handle the ``capture-camera`` subcommand.
+
+    Resolves a camera, drives :func:`iter_camera_frames`, writes each
+    frame as a raw ``.bgr24`` file under ``ns.output_dir``, and prints
+    the written paths (one per line).
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads the device filters plus every capture /
+        output knob (``width`` / ``height`` / ``fps`` / ``output_width``
+        / ``output_height`` / ``pad_color`` / ``max_frames``).
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+    """
     # Resolve the camera source via the same filter surface as
     # ``pick-source``.
     src = pick_source("camera", name_substring=ns.name, index=ns.index)
@@ -197,6 +261,23 @@ async def _mic_to_wav(
 
 
 def _handle_capture_mic(ns: argparse.Namespace) -> int:
+    """Handle the ``capture-mic`` subcommand.
+
+    Converts the ``--seconds`` duration into a frame budget and drives
+    :func:`_mic_to_wav` (via :func:`asyncio.run`) to record the WAV.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads the device filters plus ``output`` /
+        ``seconds`` / ``sample_rate`` / ``frame_ms`` / ``mono``.
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success, ``2`` if no audio was
+        captured.
+    """
     # Compute max_frames from --seconds if the caller specified a
     # duration; ``iter_mic_audio`` runs unbounded otherwise.
     max_frames: int | None = None
@@ -230,6 +311,14 @@ def _handle_capture_mic(ns: argparse.Namespace) -> int:
 
 
 def _add_list_sources(sub: argparse._SubParsersAction) -> None:
+    """Register the ``list-sources`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action returned by
+        :meth:`argparse.ArgumentParser.add_subparsers`.
+    """
     # Enumerate cameras / microphones — JSON output.
     p = sub.add_parser(
         "list-sources",
@@ -245,6 +334,13 @@ def _add_list_sources(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_pick_source(sub: argparse._SubParsersAction) -> None:
+    """Register the ``pick-source`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
     # Resolve a single device by kind / name / index.
     p = sub.add_parser(
         "pick-source",
@@ -257,6 +353,13 @@ def _add_pick_source(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_input_args(sub: argparse._SubParsersAction) -> None:
+    """Register the ``input-args`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
     # Print the ffmpeg -f/-i argv fragment for a resolved device.
     p = sub.add_parser(
         "input-args",
@@ -269,6 +372,13 @@ def _add_input_args(sub: argparse._SubParsersAction) -> None:
 
 
 def _add_capture_camera(sub: argparse._SubParsersAction) -> None:
+    """Register the ``capture-camera`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
     # Grab N frames from a camera and persist them as raw bgr24 files.
     p = sub.add_parser(
         "capture-camera",
@@ -276,23 +386,53 @@ def _add_capture_camera(sub: argparse._SubParsersAction) -> None:
     )
     p.add_argument("--name", default=None, help="Case-insensitive substring on the device name.")
     p.add_argument("--index", type=int, default=None, help="Exact index match.")
-    p.add_argument("--output-dir", required=True, dest="output_dir",
-                   help="Folder that receives the captured frames.")
+    p.add_argument(
+        "--output-dir",
+        required=True,
+        dest="output_dir",
+        help="Folder that receives the captured frames.",
+    )
     p.add_argument("--width", type=int, default=None, help="Capture-side width (before decode).")
     p.add_argument("--height", type=int, default=None, help="Capture-side height (before decode).")
     p.add_argument("--fps", type=float, default=None, help="Capture-side frame rate.")
-    p.add_argument("--output-width", type=int, default=None, dest="output_width",
-                   help="Post-decode output width (scale-fit-and-pad).")
-    p.add_argument("--output-height", type=int, default=None, dest="output_height",
-                   help="Post-decode output height (scale-fit-and-pad).")
-    p.add_argument("--pad-color", default="black", dest="pad_color",
-                   help="Pad colour when scale-fit-and-pad applies (default 'black').")
-    p.add_argument("--max-frames", type=int, default=30, dest="max_frames",
-                   help="Stop after this many frames (default 30).")
+    p.add_argument(
+        "--output-width",
+        type=int,
+        default=None,
+        dest="output_width",
+        help="Post-decode output width (scale-fit-and-pad).",
+    )
+    p.add_argument(
+        "--output-height",
+        type=int,
+        default=None,
+        dest="output_height",
+        help="Post-decode output height (scale-fit-and-pad).",
+    )
+    p.add_argument(
+        "--pad-color",
+        default="black",
+        dest="pad_color",
+        help="Pad colour when scale-fit-and-pad applies (default 'black').",
+    )
+    p.add_argument(
+        "--max-frames",
+        type=int,
+        default=30,
+        dest="max_frames",
+        help="Stop after this many frames (default 30).",
+    )
     p.set_defaults(func=_handle_capture_camera)
 
 
 def _add_capture_mic(sub: argparse._SubParsersAction) -> None:
+    """Register the ``capture-mic`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
     # Record N seconds of PCM to a WAV file.
     p = sub.add_parser(
         "capture-mic",
@@ -301,16 +441,29 @@ def _add_capture_mic(sub: argparse._SubParsersAction) -> None:
     p.add_argument("--name", default=None, help="Case-insensitive substring on the device name.")
     p.add_argument("--index", type=int, default=None, help="Exact index match.")
     p.add_argument("--output", required=True, help="Output WAV path.")
-    p.add_argument("--seconds", type=float, default=3.0,
-                   help="Recording duration in seconds (default 3.0).")
-    p.add_argument("--sample-rate", type=int, default=16000, dest="sample_rate",
-                   help="Target sample rate in Hz (default 16000 — Whisper-native).")
-    p.add_argument("--frame-ms", type=int, default=20, dest="frame_ms",
-                   help="Frame duration in ms (default 20 — Silero-VAD native).")
-    p.add_argument("--mono", action="store_true", default=True,
-                   help="Downmix to mono (default true).")
-    p.add_argument("--no-mono", dest="mono", action="store_false",
-                   help="Preserve source channel count.")
+    p.add_argument(
+        "--seconds", type=float, default=3.0, help="Recording duration in seconds (default 3.0)."
+    )
+    p.add_argument(
+        "--sample-rate",
+        type=int,
+        default=16000,
+        dest="sample_rate",
+        help="Target sample rate in Hz (default 16000 — Whisper-native).",
+    )
+    p.add_argument(
+        "--frame-ms",
+        type=int,
+        default=20,
+        dest="frame_ms",
+        help="Frame duration in ms (default 20 — Silero-VAD native).",
+    )
+    p.add_argument(
+        "--mono", action="store_true", default=True, help="Downmix to mono (default true)."
+    )
+    p.add_argument(
+        "--no-mono", dest="mono", action="store_false", help="Preserve source channel count."
+    )
     p.set_defaults(func=_handle_capture_mic)
 
 

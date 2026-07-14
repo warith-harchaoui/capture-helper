@@ -10,7 +10,6 @@ from capture_helper.sources import (
     list_sources,
 )
 
-
 _AVFOUNDATION_SAMPLE = """\
 [AVFoundation indev @ 0x12a304880] AVFoundation video devices:
 [AVFoundation indev @ 0x12a304880] [0] FaceTime HD Camera

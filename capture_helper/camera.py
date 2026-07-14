@@ -38,16 +38,14 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 
 from __future__ import annotations
 
-import logging
 import shutil
 import subprocess
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import os_helper as osh
 
 from .sources import Source, ffmpeg_input_args
-
 
 # ---------------------------------------------------------------------------
 # Constants — output pixel format
@@ -131,12 +129,8 @@ def _build_ffmpeg_cmd(
         # Aspect-preserving fit-then-pad. ``force_original_aspect_ratio=decrease``
         # downscales to fit inside the box; ``pad`` then centres and fills the
         # remainder with ``pad_color``. Matches video_helper's contract.
-        vf.append(
-            f"scale={output_width}:{output_height}:force_original_aspect_ratio=decrease"
-        )
-        vf.append(
-            f"pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2:color={pad_color}"
-        )
+        vf.append(f"scale={output_width}:{output_height}:force_original_aspect_ratio=decrease")
+        vf.append(f"pad={output_width}:{output_height}:(ow-iw)/2:(oh-ih)/2:color={pad_color}")
     elif output_width is not None:
         # Single dimension — preserve aspect ratio on the other axis.
         vf.append(f"scale={output_width}:-1")
@@ -234,9 +228,7 @@ def iter_camera_frames(
     # Cheap validation up front — surfacing a clear error here beats a
     # cryptic ffmpeg failure later.
     if source["kind"] != "camera":
-        raise ValueError(
-            f"iter_camera_frames expects a camera source, got kind={source['kind']!r}"
-        )
+        raise ValueError(f"iter_camera_frames expects a camera source, got kind={source['kind']!r}")
     if shutil.which("ffmpeg") is None:
         raise FileNotFoundError(
             "ffmpeg not found on PATH — install via 'brew install ffmpeg' "
@@ -293,10 +285,10 @@ def iter_camera_frames(
             if len(raw) < bytes_per_frame:
                 # Short read = ffmpeg exited / device disconnected /
                 # consumer broke. Surface anything informative on stderr
-                # via the logger and stop iterating.
+                # via os-helper's logging and stop iterating.
                 err = (proc.stderr.read() or b"").decode("utf-8", errors="replace").strip()
                 if err:
-                    logging.warning("capture-helper camera ffmpeg stderr: %s", err)
+                    osh.warning("capture-helper camera ffmpeg stderr: %s", err)
                 if yielded == 0:
                     raise RuntimeError(
                         "ffmpeg exited before yielding a frame — common causes: "
@@ -308,7 +300,9 @@ def iter_camera_frames(
             # ``frombuffer`` is zero-copy but returns a read-only view;
             # ``.copy()`` gives the caller a mutable array (consistent
             # with video_helper.extract_frames).
-            frame = np.frombuffer(raw, dtype=np.uint8).reshape(out_h, out_w, _BYTES_PER_PIXEL).copy()
+            frame = (
+                np.frombuffer(raw, dtype=np.uint8).reshape(out_h, out_w, _BYTES_PER_PIXEL).copy()
+            )
             yield frame
             yielded += 1
 

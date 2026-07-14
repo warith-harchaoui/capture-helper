@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "capture-helper"
-version = "0.2.2"
+version = "0.2.3"
 description = "Capture Helper — OBS-inspired (no GUI) capture, processing, and publishing for the AI Helpers stack. Multi-surface: library + argparse CLI + click CLI + FastAPI HTTP surface + MCP tools over the INPUT layer (cameras / microphones)."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
 ]
 dependencies = [
-    "os-helper>=1.4.2",
+    "os-helper>=1.5.0",
     # numpy is needed by camera (frame reshape) and mic (PCM reshape).
     # Lower bound matches the rest of the suite; no upper pin for now.
     "numpy>=1.23",

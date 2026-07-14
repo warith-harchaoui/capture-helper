@@ -41,8 +41,7 @@ from __future__ import annotations
 import platform
 import shutil
 import subprocess
-from typing import List, Literal, TypedDict
-
+from typing import Literal, TypedDict
 
 SourceKind = Literal["camera", "microphone"]
 
@@ -90,7 +89,10 @@ def _run_ffmpeg_list_devices(driver: str) -> str:
         # -f <driver> -list_devices true -i ""  — exits non-zero by design.
         proc = subprocess.run(
             ["ffmpeg", "-hide_banner", "-f", driver, "-list_devices", "true", "-i", ""],
-            capture_output=True, text=True, check=False, timeout=10,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
         )
         # The device list comes on stderr; some ffmpeg builds also dump it on stdout.
         return (proc.stderr or "") + "\n" + (proc.stdout or "")
@@ -98,7 +100,7 @@ def _run_ffmpeg_list_devices(driver: str) -> str:
         return ""
 
 
-def _parse_avfoundation_devices(stderr: str) -> List[Source]:
+def _parse_avfoundation_devices(stderr: str) -> list[Source]:
     """Parse macOS ffmpeg avfoundation listing.
 
     Format::
@@ -109,7 +111,7 @@ def _parse_avfoundation_devices(stderr: str) -> List[Source]:
         [AVFoundation indev @ 0x...] AVFoundation audio devices:
         [AVFoundation indev @ 0x...] [0] Built-in Microphone
     """
-    out: List[Source] = []
+    out: list[Source] = []
     current_kind: SourceKind | None = None
     for line in stderr.splitlines():
         s = line.strip()
@@ -138,14 +140,19 @@ def _parse_avfoundation_devices(stderr: str) -> List[Source]:
         # (screen capture lands in v0.2.0 with its own abstraction).
         if current_kind == "camera" and nm.lower().startswith("capture screen"):
             continue
-        out.append({
-            "kind": current_kind, "name": nm, "index": idx,
-            "platform": "darwin", "driver": "avfoundation",
-        })
+        out.append(
+            {
+                "kind": current_kind,
+                "name": nm,
+                "index": idx,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            }
+        )
     return out
 
 
-def _parse_dshow_devices(stderr: str) -> List[Source]:
+def _parse_dshow_devices(stderr: str) -> list[Source]:
     """Parse Windows ffmpeg DirectShow listing (dshow).
 
     Format::
@@ -155,7 +162,7 @@ def _parse_dshow_devices(stderr: str) -> List[Source]:
         [dshow @ ...] DirectShow audio devices
         [dshow @ ...]  "Microphone Array (Realtek...)"
     """
-    out: List[Source] = []
+    out: list[Source] = []
     current_kind: SourceKind | None = None
     index_per_kind: dict = {"camera": 0, "microphone": 0}
     for line in stderr.splitlines():
@@ -168,39 +175,52 @@ def _parse_dshow_devices(stderr: str) -> List[Source]:
             continue
         if current_kind is None:
             continue
-        if "\"" not in s:
+        if '"' not in s:
             continue
         try:
-            nm = s.split("\"", 2)[1]
+            nm = s.split('"', 2)[1]
         except IndexError:
             continue
         if not nm.strip():
             continue
-        out.append({
-            "kind": current_kind, "name": nm,
-            "index": index_per_kind[current_kind],
-            "platform": "windows", "driver": "dshow",
-        })
+        out.append(
+            {
+                "kind": current_kind,
+                "name": nm,
+                "index": index_per_kind[current_kind],
+                "platform": "windows",
+                "driver": "dshow",
+            }
+        )
         index_per_kind[current_kind] += 1
     return out
 
 
-def _list_linux_devices() -> List[Source]:
+def _list_linux_devices() -> list[Source]:
     """Linux: cameras via /dev/video*, mics via pactl / arecord (best-effort)."""
-    out: List[Source] = []
+    out: list[Source] = []
     # Cameras: /dev/video0, /dev/video1, ... (v4l2)
     import glob
+
     for idx, dev in enumerate(sorted(glob.glob("/dev/video*"))):
-        out.append({
-            "kind": "camera", "name": dev, "index": idx,
-            "platform": "linux", "driver": "v4l2",
-        })
+        out.append(
+            {
+                "kind": "camera",
+                "name": dev,
+                "index": idx,
+                "platform": "linux",
+                "driver": "v4l2",
+            }
+        )
     # Microphones: prefer pulse, fall back to alsa.
     if shutil.which("pactl") is not None:
         try:
             proc = subprocess.run(
                 ["pactl", "list", "short", "sources"],
-                capture_output=True, text=True, check=False, timeout=5,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=5,
             )
             mic_idx = 0
             for line in (proc.stdout or "").splitlines():
@@ -211,17 +231,22 @@ def _list_linux_devices() -> List[Source]:
                 # PulseAudio sources include monitors (loopback); skip them.
                 if name.endswith(".monitor"):
                     continue
-                out.append({
-                    "kind": "microphone", "name": name, "index": mic_idx,
-                    "platform": "linux", "driver": "pulse",
-                })
+                out.append(
+                    {
+                        "kind": "microphone",
+                        "name": name,
+                        "index": mic_idx,
+                        "platform": "linux",
+                        "driver": "pulse",
+                    }
+                )
                 mic_idx += 1
         except (subprocess.TimeoutExpired, OSError):
             pass
     return out
 
 
-def list_sources(kind: SourceKind | None = None) -> List[Source]:
+def list_sources(kind: SourceKind | None = None) -> list[Source]:
     """
     Enumerate available capture devices on the current OS.
 
@@ -244,7 +269,7 @@ def list_sources(kind: SourceKind | None = None) -> List[Source]:
     """
     system = platform.system().lower()
 
-    sources: List[Source]
+    sources: list[Source]
     if system == "darwin":
         stderr = _run_ffmpeg_list_devices("avfoundation")
         sources = _parse_avfoundation_devices(stderr)
@@ -323,13 +348,27 @@ def pick_source(
         )
 
     def _matches(s: Source) -> bool:
+        """Return whether ``s`` satisfies every active filter.
+
+        Parameters
+        ----------
+        s : Source
+            One candidate device from the catalog.
+
+        Returns
+        -------
+        bool
+            ``True`` when the device passes both the (optional)
+            ``name_substring`` and ``index`` predicates.
+        """
         # Case-insensitive substring lets the user type a fragment of
         # the actual device name without worrying about exact casing.
-        if name_substring is not None and name_substring.lower() not in s["name"].lower():
-            return False
-        if index is not None and s["index"] != index:
-            return False
-        return True
+        # ``None`` filters are treated as "always pass" so an unset
+        # constraint never excludes a candidate.
+        name_ok = name_substring is None or name_substring.lower() in s["name"].lower()
+        index_ok = index is None or s["index"] == index
+        # A device matches only when it satisfies every active filter.
+        return name_ok and index_ok
 
     matching = [s for s in catalog if _matches(s)]
     if not matching:
@@ -383,7 +422,9 @@ def ffmpeg_input_args(source: Source) -> list[str]:
     if drv == "avfoundation":
         # AVFoundation: combined video/audio addressing. ``none`` opts
         # out of the channel we're not capturing.
-        spec = f"{source['index']}:none" if source["kind"] == "camera" else f"none:{source['index']}"
+        spec = (
+            f"{source['index']}:none" if source["kind"] == "camera" else f"none:{source['index']}"
+        )
         return ["-f", "avfoundation", "-i", spec]
     if drv == "v4l2":
         # v4l2 takes the device path directly (``/dev/videoN`` per

@@ -10,13 +10,12 @@ exist with the right shape.
 
 from __future__ import annotations
 
-from typing import Iterator
+from collections.abc import Iterator
 
 import pytest
 
 import capture_helper as ch
 from capture_helper.sources import ffmpeg_input_args, pick_source
-
 
 # ---------------------------------------------------------------------------
 # pick_source — filter logic
@@ -36,10 +35,20 @@ def test_pick_source_first_match(monkeypatch: pytest.MonkeyPatch) -> None:
     _seed_catalog(
         monkeypatch,
         [
-            {"kind": "camera", "name": "FaceTime HD Camera", "index": 0,
-             "platform": "darwin", "driver": "avfoundation"},
-            {"kind": "camera", "name": "iPhone Camera", "index": 1,
-             "platform": "darwin", "driver": "avfoundation"},
+            {
+                "kind": "camera",
+                "name": "FaceTime HD Camera",
+                "index": 0,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            },
+            {
+                "kind": "camera",
+                "name": "iPhone Camera",
+                "index": 1,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            },
         ],
     )
     cam = pick_source("camera")
@@ -50,10 +59,20 @@ def test_pick_source_name_substring_case_insensitive(monkeypatch: pytest.MonkeyP
     _seed_catalog(
         monkeypatch,
         [
-            {"kind": "microphone", "name": "Built-in Microphone", "index": 0,
-             "platform": "darwin", "driver": "avfoundation"},
-            {"kind": "microphone", "name": "BlackHole 16ch", "index": 1,
-             "platform": "darwin", "driver": "avfoundation"},
+            {
+                "kind": "microphone",
+                "name": "Built-in Microphone",
+                "index": 0,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            },
+            {
+                "kind": "microphone",
+                "name": "BlackHole 16ch",
+                "index": 1,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            },
         ],
     )
     mic = pick_source("microphone", name_substring="blackhole")
@@ -64,10 +83,8 @@ def test_pick_source_by_index(monkeypatch: pytest.MonkeyPatch) -> None:
     _seed_catalog(
         monkeypatch,
         [
-            {"kind": "camera", "name": "A", "index": 0,
-             "platform": "linux", "driver": "v4l2"},
-            {"kind": "camera", "name": "B", "index": 1,
-             "platform": "linux", "driver": "v4l2"},
+            {"kind": "camera", "name": "A", "index": 0, "platform": "linux", "driver": "v4l2"},
+            {"kind": "camera", "name": "B", "index": 1, "platform": "linux", "driver": "v4l2"},
         ],
     )
     cam = pick_source("camera", index=1)
@@ -84,8 +101,13 @@ def test_pick_source_no_match_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     _seed_catalog(
         monkeypatch,
         [
-            {"kind": "microphone", "name": "Built-in", "index": 0,
-             "platform": "darwin", "driver": "avfoundation"},
+            {
+                "kind": "microphone",
+                "name": "Built-in",
+                "index": 0,
+                "platform": "darwin",
+                "driver": "avfoundation",
+            },
         ],
     )
     with pytest.raises(ValueError, match="No microphone matches"):
@@ -99,56 +121,77 @@ def test_pick_source_no_match_raises(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_ffmpeg_input_args_avfoundation_camera() -> None:
     src: ch.Source = {
-        "kind": "camera", "name": "FaceTime HD Camera", "index": 0,
-        "platform": "darwin", "driver": "avfoundation",
+        "kind": "camera",
+        "name": "FaceTime HD Camera",
+        "index": 0,
+        "platform": "darwin",
+        "driver": "avfoundation",
     }
     assert ffmpeg_input_args(src) == ["-f", "avfoundation", "-i", "0:none"]
 
 
 def test_ffmpeg_input_args_avfoundation_mic() -> None:
     src: ch.Source = {
-        "kind": "microphone", "name": "Built-in Microphone", "index": 1,
-        "platform": "darwin", "driver": "avfoundation",
+        "kind": "microphone",
+        "name": "Built-in Microphone",
+        "index": 1,
+        "platform": "darwin",
+        "driver": "avfoundation",
     }
     assert ffmpeg_input_args(src) == ["-f", "avfoundation", "-i", "none:1"]
 
 
 def test_ffmpeg_input_args_v4l2() -> None:
     src: ch.Source = {
-        "kind": "camera", "name": "/dev/video0", "index": 0,
-        "platform": "linux", "driver": "v4l2",
+        "kind": "camera",
+        "name": "/dev/video0",
+        "index": 0,
+        "platform": "linux",
+        "driver": "v4l2",
     }
     assert ffmpeg_input_args(src) == ["-f", "v4l2", "-i", "/dev/video0"]
 
 
 def test_ffmpeg_input_args_dshow_camera() -> None:
     src: ch.Source = {
-        "kind": "camera", "name": "Integrated Webcam", "index": 0,
-        "platform": "windows", "driver": "dshow",
+        "kind": "camera",
+        "name": "Integrated Webcam",
+        "index": 0,
+        "platform": "windows",
+        "driver": "dshow",
     }
     assert ffmpeg_input_args(src) == ["-f", "dshow", "-i", "video=Integrated Webcam"]
 
 
 def test_ffmpeg_input_args_dshow_mic() -> None:
     src: ch.Source = {
-        "kind": "microphone", "name": "Microphone Array (Realtek)", "index": 0,
-        "platform": "windows", "driver": "dshow",
+        "kind": "microphone",
+        "name": "Microphone Array (Realtek)",
+        "index": 0,
+        "platform": "windows",
+        "driver": "dshow",
     }
     assert ffmpeg_input_args(src) == ["-f", "dshow", "-i", "audio=Microphone Array (Realtek)"]
 
 
 def test_ffmpeg_input_args_pulse() -> None:
     src: ch.Source = {
-        "kind": "microphone", "name": "alsa_input.usb_mic", "index": 0,
-        "platform": "linux", "driver": "pulse",
+        "kind": "microphone",
+        "name": "alsa_input.usb_mic",
+        "index": 0,
+        "platform": "linux",
+        "driver": "pulse",
     }
     assert ffmpeg_input_args(src) == ["-f", "pulse", "-i", "alsa_input.usb_mic"]
 
 
 def test_ffmpeg_input_args_unknown_driver_raises() -> None:
     src: ch.Source = {
-        "kind": "camera", "name": "weird", "index": 0,
-        "platform": "weird", "driver": "made-up",
+        "kind": "camera",
+        "name": "weird",
+        "index": 0,
+        "platform": "weird",
+        "driver": "made-up",
     }
     with pytest.raises(ValueError, match="Unsupported source driver"):
         ffmpeg_input_args(src)
@@ -161,8 +204,11 @@ def test_ffmpeg_input_args_unknown_driver_raises() -> None:
 
 def test_iter_camera_frames_rejects_mic_source() -> None:
     mic_src: ch.Source = {
-        "kind": "microphone", "name": "Built-in", "index": 0,
-        "platform": "darwin", "driver": "avfoundation",
+        "kind": "microphone",
+        "name": "Built-in",
+        "index": 0,
+        "platform": "darwin",
+        "driver": "avfoundation",
     }
     it: Iterator = ch.iter_camera_frames(mic_src, output_width=640, output_height=360)
     with pytest.raises(ValueError, match="camera source"):
@@ -171,8 +217,11 @@ def test_iter_camera_frames_rejects_mic_source() -> None:
 
 def test_iter_camera_frames_requires_known_resolution() -> None:
     cam_src: ch.Source = {
-        "kind": "camera", "name": "x", "index": 0,
-        "platform": "darwin", "driver": "avfoundation",
+        "kind": "camera",
+        "name": "x",
+        "index": 0,
+        "platform": "darwin",
+        "driver": "avfoundation",
     }
     it: Iterator = ch.iter_camera_frames(cam_src)  # no resolution at all
     with pytest.raises(ValueError, match="requires"):
@@ -187,8 +236,11 @@ def test_iter_camera_frames_requires_known_resolution() -> None:
 @pytest.mark.asyncio
 async def test_iter_mic_audio_rejects_camera_source() -> None:
     cam_src: ch.Source = {
-        "kind": "camera", "name": "x", "index": 0,
-        "platform": "darwin", "driver": "avfoundation",
+        "kind": "camera",
+        "name": "x",
+        "index": 0,
+        "platform": "darwin",
+        "driver": "avfoundation",
     }
     with pytest.raises(ValueError, match="microphone source"):
         async for _ in ch.iter_mic_audio(cam_src):

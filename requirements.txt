@@ -12,6 +12,6 @@
 # The os-helper pin is kept in lock-step with the release tag below.
 
 # --- Suite dependency -----------------------------------------------------
-os-helper>=1.4.2
+os-helper>=1.5.0
 # --- Core runtime ---------------------------------------------------------
 numpy>=1.23

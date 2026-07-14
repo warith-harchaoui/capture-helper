@@ -41,15 +41,14 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 from __future__ import annotations
 
 import asyncio
-import logging
-from typing import AsyncIterator, Optional, TypedDict
+from collections.abc import AsyncIterator
+from typing import TypedDict
 
 import numpy as np
 import os_helper as osh
 from numpy.typing import NDArray
 
 from .sources import Source, ffmpeg_input_args
-
 
 # ---------------------------------------------------------------------------
 # Public types
@@ -80,7 +79,7 @@ class MicFrame(TypedDict):
 
     t_abs_s: float
     pcm: NDArray[np.float32]
-    voiced: Optional[bool]
+    voiced: bool | None
 
 
 # ---------------------------------------------------------------------------
@@ -206,9 +205,7 @@ async def iter_mic_audio(
     # Cheap validation up front — surfacing a clear error here beats a
     # cryptic ffmpeg failure (or a silent garbage-data stream) later.
     if source["kind"] != "microphone":
-        raise ValueError(
-            f"iter_mic_audio expects a microphone source, got kind={source['kind']!r}"
-        )
+        raise ValueError(f"iter_mic_audio expects a microphone source, got kind={source['kind']!r}")
     if frame_ms <= 0:
         raise ValueError(f"frame_ms must be > 0, got {frame_ms}")
     if target_sample_rate <= 0:
@@ -282,4 +279,4 @@ async def iter_mic_audio(
                 await proc.wait()
         err = (await proc.stderr.read()).decode("utf-8", errors="replace").strip()
         if err and proc.returncode not in (0, None):
-            logging.warning("capture-helper mic ffmpeg stderr: %s", err)
+            osh.warning("capture-helper mic ffmpeg stderr: %s", err)

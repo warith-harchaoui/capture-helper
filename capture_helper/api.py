@@ -51,7 +51,6 @@ import tempfile
 import wave
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -71,7 +70,6 @@ from . import (
     list_sources,
     pick_source,
 )
-
 
 # ---------------------------------------------------------------------------
 # App factory + shared plumbing
@@ -139,7 +137,7 @@ def health() -> dict:
 
 @app.get("/sources", tags=["reads"])
 def sources(
-    kind: Optional[str] = Query(
+    kind: str | None = Query(
         None,
         pattern="^(camera|microphone)$",
         description="Filter to one kind; omit to list both.",
@@ -152,8 +150,8 @@ def sources(
 @app.get("/pick", tags=["reads"])
 def pick(
     kind: str = Query(..., pattern="^(camera|microphone)$"),
-    name: Optional[str] = Query(None, description="Case-insensitive substring."),
-    index: Optional[int] = Query(None, description="Exact index match."),
+    name: str | None = Query(None, description="Case-insensitive substring."),
+    index: int | None = Query(None, description="Exact index match."),
 ) -> JSONResponse:
     """Resolve a single capture device by kind / name / index."""
     try:
@@ -167,8 +165,8 @@ def pick(
 @app.get("/input-args", tags=["reads"])
 def input_args(
     kind: str = Query(..., pattern="^(camera|microphone)$"),
-    name: Optional[str] = Query(None, description="Case-insensitive substring."),
-    index: Optional[int] = Query(None, description="Exact index match."),
+    name: str | None = Query(None, description="Case-insensitive substring."),
+    index: int | None = Query(None, description="Exact index match."),
 ) -> JSONResponse:
     """Print the ffmpeg ``-f DRIVER -i SPEC`` argv fragment for a resolved device."""
     try:
@@ -186,13 +184,13 @@ def input_args(
 @app.get("/capture/camera", tags=["actions"])
 def capture_camera(
     background: BackgroundTasks,
-    name: Optional[str] = Query(None),
-    index: Optional[int] = Query(None),
-    width: Optional[int] = Query(None),
-    height: Optional[int] = Query(None),
-    fps: Optional[float] = Query(None),
-    output_width: Optional[int] = Query(None),
-    output_height: Optional[int] = Query(None),
+    name: str | None = Query(None),
+    index: int | None = Query(None),
+    width: int | None = Query(None),
+    height: int | None = Query(None),
+    fps: float | None = Query(None),
+    output_width: int | None = Query(None),
+    output_height: int | None = Query(None),
     pad_color: str = Query("black"),
     max_frames: int = Query(30, ge=1, le=10_000),
 ):
@@ -276,8 +274,8 @@ async def _record_mic_to_wav(
 @app.get("/capture/mic", tags=["actions"])
 def capture_mic(
     background: BackgroundTasks,
-    name: Optional[str] = Query(None),
-    index: Optional[int] = Query(None),
+    name: str | None = Query(None),
+    index: int | None = Query(None),
     seconds: float = Query(3.0, gt=0, le=600),
     sample_rate: int = Query(16000, gt=0),
     frame_ms: int = Query(20, gt=0),

@@ -46,8 +46,7 @@ try:
     import click
 except ImportError as exc:  # pragma: no cover
     raise ImportError(
-        "The click CLI requires the [cli] extra. "
-        "Install with: pip install 'capture-helper[cli]'"
+        "The click CLI requires the [cli] extra. Install with: pip install 'capture-helper[cli]'"
     ) from exc
 
 # Same underlying functions as the argparse twin — one source of truth.
@@ -58,7 +57,6 @@ from . import (
     list_sources,
     pick_source,
 )
-
 
 # ---------------------------------------------------------------------------
 # Top-level group
@@ -134,19 +132,30 @@ def input_args_cmd(kind: str, name: str | None, index: int | None) -> None:
 @cli.command("capture-camera")
 @click.option("--name", default=None, help="Case-insensitive substring on the device name.")
 @click.option("--index", type=int, default=None, help="Exact index match.")
-@click.option("--output-dir", required=True, type=click.Path(),
-              help="Folder that receives the captured frames.")
+@click.option(
+    "--output-dir",
+    required=True,
+    type=click.Path(),
+    help="Folder that receives the captured frames.",
+)
 @click.option("--width", type=int, default=None, help="Capture-side width (before decode).")
 @click.option("--height", type=int, default=None, help="Capture-side height (before decode).")
 @click.option("--fps", type=float, default=None, help="Capture-side frame rate.")
-@click.option("--output-width", type=int, default=None,
-              help="Post-decode output width (scale-fit-and-pad).")
-@click.option("--output-height", type=int, default=None,
-              help="Post-decode output height (scale-fit-and-pad).")
-@click.option("--pad-color", default="black", show_default=True,
-              help="Pad colour when scale-fit-and-pad applies.")
-@click.option("--max-frames", type=int, default=30, show_default=True,
-              help="Stop after this many frames.")
+@click.option(
+    "--output-width", type=int, default=None, help="Post-decode output width (scale-fit-and-pad)."
+)
+@click.option(
+    "--output-height", type=int, default=None, help="Post-decode output height (scale-fit-and-pad)."
+)
+@click.option(
+    "--pad-color",
+    default="black",
+    show_default=True,
+    help="Pad colour when scale-fit-and-pad applies.",
+)
+@click.option(
+    "--max-frames", type=int, default=30, show_default=True, help="Stop after this many frames."
+)
 def capture_camera_cmd(
     name: str | None,
     index: int | None,
@@ -232,14 +241,19 @@ async def _mic_to_wav_async(
 @click.option("--name", default=None, help="Case-insensitive substring on the device name.")
 @click.option("--index", type=int, default=None, help="Exact index match.")
 @click.option("--output", required=True, type=click.Path(), help="Output WAV path.")
-@click.option("--seconds", type=float, default=3.0, show_default=True,
-              help="Recording duration in seconds.")
-@click.option("--sample-rate", type=int, default=16000, show_default=True,
-              help="Target sample rate in Hz.")
-@click.option("--frame-ms", type=int, default=20, show_default=True,
-              help="Frame duration in ms.")
-@click.option("--mono/--no-mono", default=True, show_default=True,
-              help="Downmix to mono or preserve source channels.")
+@click.option(
+    "--seconds", type=float, default=3.0, show_default=True, help="Recording duration in seconds."
+)
+@click.option(
+    "--sample-rate", type=int, default=16000, show_default=True, help="Target sample rate in Hz."
+)
+@click.option("--frame-ms", type=int, default=20, show_default=True, help="Frame duration in ms.")
+@click.option(
+    "--mono/--no-mono",
+    default=True,
+    show_default=True,
+    help="Downmix to mono or preserve source channels.",
+)
 def capture_mic_cmd(
     name: str | None,
     index: int | None,
