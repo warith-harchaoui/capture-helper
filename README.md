@@ -12,6 +12,12 @@
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+# Documentation
+
+[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
+
+[📋 Examples](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md)
+
 ## Status — v0.1.0 INPUT layer
 
 What ships today:

@@ -12,6 +12,12 @@ Couche **inspirée d'OBS** (sans GUI) pour la capture + le traitement + la diffu
 
 [![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
+# Documentation
+
+[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
+
+[📋 Exemples](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md)
+
 ## Statut — couche INPUT v0.1.0
 
 Ce qui marche aujourd'hui :
