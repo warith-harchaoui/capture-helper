@@ -12,7 +12,7 @@ Couche **inspirée d'OBS** (sans GUI) pour la capture + le traitement + la diffu
 
 [![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
-# Documentation
+## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
 
@@ -80,7 +80,7 @@ sans réécriture.
 
 | Surface | Installation | Point d'entrée | Cas d'usage |
 | --- | --- | --- | --- |
-| **Bibliothèque Python** | `pip install …@v0.2.0` | `import capture_helper as ch` | Notebooks, scripts, autres AI Helpers |
+| **Bibliothèque Python** | `pip install capture-helper` | `import capture_helper as ch` | Notebooks, scripts, autres AI Helpers |
 | **CLI argparse** | *(sans extra)* | `capture-helper …` | Shells, cron, CI, CMD de container |
 | **CLI click** | extra `[cli]` | `capture-helper-click …` | Utilisateurs avec stack click-native (complétion, `--help` colorée) |
 | **HTTP FastAPI** | extra `[api]` | `uvicorn capture_helper.api:app` | Service derrière un reverse-proxy, clients JSON / multipart |
@@ -124,32 +124,42 @@ OpenCV / PyAV / sounddevice / OBS / FFmpeg CLI / GStreamer, voir
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
 
-Puis installer le paquet :
+Nous recommandons d'utiliser des environnements Python. Consultez ce lien si vous ne savez pas comment en configurer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
 
+Il vous faut `ffmpeg` dans le PATH pour que l'énumération de périphériques et la capture live retournent quelque chose.
 
-```bash
-pip install --force-reinstall --no-cache-dir \
-  git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.2
-```
-
-Extras optionnels (choisissez ce qu'il vous faut) :
+### Depuis PyPI (recommandé)
 
 ```bash
-pip install 'capture-helper[cli] @ git+…@v0.2.0'         # CLI click
-pip install 'capture-helper[api] @ git+…@v0.2.0'         # HTTP FastAPI
-pip install 'capture-helper[api,mcp] @ git+…@v0.2.0'     # tools MCP
+# Couche INPUT de base (list/pick sources, itérateurs caméra + micro)
+pip install capture-helper
+
+# Surfaces optionnelles
+pip install "capture-helper[cli]"       # jumeau CLI click
+pip install "capture-helper[api]"       # surface HTTP FastAPI
+pip install "capture-helper[api,mcp]"   # tools MCP au-dessus de FastAPI
 ```
 
-Il vous faut `ffmpeg` dans le PATH pour que l'énumération de périphériques retourne quelque chose :
+### Depuis les sources (sans PyPI)
 
-- macOS 🍎 : `brew install ffmpeg`
+```bash
+# Couche INPUT de base
+pip install "git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.4"
 
-  (installez `brew` grâce à [brew.sh](https://brew.sh/))
-- Ubuntu 🐧 : `sudo apt install ffmpeg`
-- Windows 🪟 : récupérer un build sur [ffmpeg.org/download.html](https://ffmpeg.org/download.html) et l'ajouter au `PATH`.
+# Surfaces optionnelles
+pip install "capture-helper[cli] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.4"
+pip install "capture-helper[api] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.4"
+pip install "capture-helper[api,mcp] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.4"
+```
 
-# Auteur
+## Auteur
+
  - [Warith HARCHAOUI](https://linkedin.com/in/warith-harchaoui)
 
-# Remerciements
+## Remerciements
+
 Remerciements chaleureux à [Mohamed Chelali](https://mchelali.github.io) et [Bachir Zerroug](https://www.linkedin.com/in/bachirzerroug) pour nos échanges fructueux.
+
+## Licence
+
+Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](LICENSE) pour les détails.
