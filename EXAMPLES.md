@@ -35,7 +35,7 @@ on Linux; a Windows build added to `PATH`).
 
 ```bash
 pip install --force-reinstall --no-cache-dir \
-    git+https://github.com/warith-harchaoui/capture-helper.git@v0.1.0
+    git+https://github.com/warith-harchaoui/capture-helper.git@v0.2.4
 ```
 
 The `list_sources` call shells out to `ffmpeg -list_devices` and parses
