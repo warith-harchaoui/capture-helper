@@ -14,6 +14,9 @@ Subcommands
 - ``input-args``      — print the ffmpeg ``-f DRIVER -i SPEC`` argv fragment
 - ``capture-camera``  — grab N frames from a camera and write them to disk
 - ``capture-mic``     — record N seconds of microphone PCM to a WAV file
+- ``scene-auto``      — emit a scene auto-populated from this host's devices
+- ``scene-validate``  — validate a scene JSON file (exit 0 if well-formed)
+- ``scene-show``      — load a scene and report how each source resolves here
 
 Usage Example
 -------------
@@ -51,7 +54,12 @@ from . import (
     iter_mic_audio,
     list_sources,
     pick_source,
+    resolve_scene_sources,
+    save_scene,
+    scene_from_available_devices,
+    validate_scene,
 )
+from .scene import load_scene
 
 # ---------------------------------------------------------------------------
 # Subcommand handlers
@@ -302,6 +310,100 @@ def _handle_capture_mic(ns: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Scene subcommand handlers — the visually-designed scene becomes a headless,
+# scriptable artifact through these.
+# ---------------------------------------------------------------------------
+
+
+def _handle_scene_auto(ns: argparse.Namespace) -> int:
+    """Handle the ``scene-auto`` subcommand.
+
+    Builds a scene auto-populated from this machine's devices and either writes
+    it to ``ns.output`` or prints it as JSON.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.name`` and optional ``ns.output``.
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+    """
+    # Seed a scene from whatever cameras / mics the host reports.
+    scene = scene_from_available_devices(ns.name)
+    if ns.output:
+        # Persist to disk when a path was given.
+        path = save_scene(scene, ns.output)
+        print(path)
+    else:
+        # Otherwise dump JSON so it can be piped / redirected.
+        print(json.dumps(scene, indent=2))
+    return 0
+
+
+def _handle_scene_validate(ns: argparse.Namespace) -> int:
+    """Handle the ``scene-validate`` subcommand.
+
+    Loads and validates a scene file; exits ``0`` when well-formed, non-zero
+    (via a raised ``ValueError``) otherwise.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.input`` (path to a scene JSON).
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` when the scene is valid.
+    """
+    # ``load_scene`` already validates; re-validate explicitly for clarity.
+    scene = load_scene(ns.input)
+    validate_scene(scene)
+    print(f"ok: {ns.input} is a valid scene ({len(scene['sources'])} source(s))")
+    return 0
+
+
+def _handle_scene_show(ns: argparse.Namespace) -> int:
+    """Handle the ``scene-show`` subcommand.
+
+    Loads a scene and reports, as JSON, how each recorded source resolves
+    against the current machine's live devices (live vs dangling).
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads ``ns.input`` (path to a scene JSON).
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success.
+    """
+    scene = load_scene(ns.input)
+    # Map each recipe onto a live device (or an error) on this host.
+    resolved = resolve_scene_sources(scene)
+    # Emit a compact, machine-readable resolution report.
+    report = {
+        "name": scene["name"],
+        "canvas": [scene["width"], scene["height"]],
+        "sources": [
+            {
+                "label": r["scene_source"]["label"],
+                "kind": r["scene_source"]["kind"],
+                "resolved": r["resolved"],
+                "error": r["error"],
+            }
+            for r in resolved
+        ],
+    }
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Parser construction
 #
 # One helper per subcommand keeps ``build_parser`` readable and lets the
@@ -467,6 +569,62 @@ def _add_capture_mic(sub: argparse._SubParsersAction) -> None:
     p.set_defaults(func=_handle_capture_mic)
 
 
+def _add_scene_auto(sub: argparse._SubParsersAction) -> None:
+    """Register the ``scene-auto`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
+    # Auto-populate a scene from the host's devices.
+    p = sub.add_parser(
+        "scene-auto",
+        help="Emit a scene auto-populated from this host's cameras / microphones.",
+    )
+    p.add_argument("--name", default="auto", help="Scene name (default 'auto').")
+    p.add_argument(
+        "--output",
+        default=None,
+        help="Write the scene JSON here; omit to print to stdout.",
+    )
+    p.set_defaults(func=_handle_scene_auto)
+
+
+def _add_scene_validate(sub: argparse._SubParsersAction) -> None:
+    """Register the ``scene-validate`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
+    # Validate a scene file's structure (no device check).
+    p = sub.add_parser(
+        "scene-validate",
+        help="Validate a scene JSON file (exit 0 when well-formed).",
+    )
+    p.add_argument("--input", required=True, help="Path to a scene JSON file.")
+    p.set_defaults(func=_handle_scene_validate)
+
+
+def _add_scene_show(sub: argparse._SubParsersAction) -> None:
+    """Register the ``scene-show`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
+    # Load a scene and report how each source resolves on this host.
+    p = sub.add_parser(
+        "scene-show",
+        help="Load a scene and report how each source resolves on this machine.",
+    )
+    p.add_argument("--input", required=True, help="Path to a scene JSON file.")
+    p.set_defaults(func=_handle_scene_show)
+
+
 def build_parser() -> argparse.ArgumentParser:
     """
     Assemble the top-level ``capture-helper`` argument parser.
@@ -506,6 +664,10 @@ def build_parser() -> argparse.ArgumentParser:
     _add_input_args(subparsers)
     _add_capture_camera(subparsers)
     _add_capture_mic(subparsers)
+    # Scene configurator subcommands — the save/load/replay artifact surface.
+    _add_scene_auto(subparsers)
+    _add_scene_validate(subparsers)
+    _add_scene_show(subparsers)
 
     return parser
 

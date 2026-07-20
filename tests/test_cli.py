@@ -42,7 +42,16 @@ def test_argparse_parser_builds_without_error():
     subparsers_action = next(
         a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"
     )
-    expected = {"list-sources", "pick-source", "input-args", "capture-camera", "capture-mic"}
+    expected = {
+        "list-sources",
+        "pick-source",
+        "input-args",
+        "capture-camera",
+        "capture-mic",
+        "scene-auto",
+        "scene-validate",
+        "scene-show",
+    }
     assert expected.issubset(set(subparsers_action.choices.keys()))
 
 
@@ -59,7 +68,16 @@ def test_argparse_help_exits_zero(capsys):
 
 @pytest.mark.parametrize(
     "sub",
-    ["list-sources", "pick-source", "input-args", "capture-camera", "capture-mic"],
+    [
+        "list-sources",
+        "pick-source",
+        "input-args",
+        "capture-camera",
+        "capture-mic",
+        "scene-auto",
+        "scene-validate",
+        "scene-show",
+    ],
 )
 def test_argparse_subcommand_help_exits_zero(sub):
     """Every subcommand's ``--help`` should exit 0 (no wiring bug)."""
@@ -95,7 +113,16 @@ def test_click_group_has_expected_subcommands():
     """The click group must expose the same subcommands as the argparse CLI."""
     from capture_helper.cli_click import cli
 
-    expected = {"list-sources", "pick-source", "input-args", "capture-camera", "capture-mic"}
+    expected = {
+        "list-sources",
+        "pick-source",
+        "input-args",
+        "capture-camera",
+        "capture-mic",
+        "scene-auto",
+        "scene-validate",
+        "scene-show",
+    }
     assert expected.issubset(set(cli.commands.keys()))
 
 
@@ -111,7 +138,16 @@ def test_click_help_exits_zero():
 
 @pytest.mark.parametrize(
     "sub",
-    ["list-sources", "pick-source", "input-args", "capture-camera", "capture-mic"],
+    [
+        "list-sources",
+        "pick-source",
+        "input-args",
+        "capture-camera",
+        "capture-mic",
+        "scene-auto",
+        "scene-validate",
+        "scene-show",
+    ],
 )
 def test_click_subcommand_help_exits_zero(sub):
     """Every click subcommand's ``--help`` should exit 0."""
@@ -131,3 +167,36 @@ def test_click_list_sources_runs_and_emits_json():
     assert result.exit_code == 0
     parsed = json.loads(result.output)
     assert isinstance(parsed, list)
+
+
+# ---------------------------------------------------------------------------
+# Scene subcommands — the artifact save / validate / show flow (hardware-free)
+# ---------------------------------------------------------------------------
+
+
+def test_argparse_scene_auto_and_validate_round_trip(tmp_path, capsys):
+    """``scene-auto --output`` writes a file that ``scene-validate`` accepts."""
+    from capture_helper.cli_argparse import main
+
+    out = tmp_path / "auto.scene.json"
+    # Auto-populate to a file (empty of sources on a headless CI runner).
+    rc = main(["scene-auto", "--name", "ci", "--output", str(out)])
+    assert rc == 0
+    assert out.exists()
+    # Validation of the just-written artifact must pass.
+    rc2 = main(["scene-validate", "--input", str(out)])
+    assert rc2 == 0
+    captured = capsys.readouterr()
+    assert "valid scene" in captured.out
+
+
+def test_click_scene_auto_emits_valid_json(tmp_path):
+    """The click ``scene-auto`` (stdout mode) emits a well-formed scene."""
+    from capture_helper.cli_click import cli
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["scene-auto", "--name", "ci"])
+    assert result.exit_code == 0
+    scene = json.loads(result.output)
+    assert scene["name"] == "ci"
+    assert isinstance(scene["sources"], list)

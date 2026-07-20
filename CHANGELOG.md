@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-20
+
+Live multi-source scene configurator + backend, and the AI Helpers skill /
+trigger surface. Everything is **additive** — the public iterator contracts
+(`iter_camera_frames` `(H, W, 3)` BGR uint8; `iter_mic_audio` / `MicFrame`)
+are unchanged, so vocal-helper and video-helper consumers are unaffected. This
+is a MINOR bump (pre-1.0, new capability, no breaking change).
+
+### Added
+
+- **Scene / config model** (`capture_helper.scene`): `Scene` / `SceneSource` /
+  `ResolvedSceneSource` typed dicts; `new_scene`, `add_source` (immutable
+  update), `validate_scene`, `save_scene` / `load_scene` (JSON artifacts),
+  `resolve_scene_sources` (map a scene onto the current machine's devices,
+  degrading gracefully for dangling sources), and
+  `scene_from_available_devices`. A scene records device *selectors* + canvas
+  layout + capture params — a portable, scriptable capture recipe.
+- **Live-preview primitives** (`capture_helper.preview`): `frame_to_jpeg`
+  (BGR frame → JPEG via a one-shot ffmpeg call, no new dependency),
+  `snapshot_jpeg`, `iter_camera_jpeg` (JPEG stream for MJPEG), `mic_level`
+  (RMS / peak dBFS for a VU meter), and `rms_dbfs`.
+- **Browser GUI** (`capture_helper.gui`, served at `GET /gui`): a live
+  multi-source scene configurator — enumerate cameras + microphones, drop them
+  on a canvas, live-preview each camera (MJPEG) and each microphone (level
+  meter), drag / arrange, and save / load the design as a reusable JSON scene.
+  Vanilla JS + Tailwind CDN, no build step. `GET /` redirects to it.
+- **New FastAPI endpoints**: `GET /gui`, `GET /` (redirect),
+  `GET /preview/camera.jpg`, `GET /preview/camera.mjpeg`,
+  `GET /preview/mic-level`, `GET /scene`, `POST /scene/save`,
+  `POST /scene/load`. The API version now reads from installed package
+  metadata instead of a hand-kept literal.
+- **New CLI subcommands** (both argparse and click twins): `scene-auto`,
+  `scene-validate`, `scene-show`.
+- **AI Helpers skill**: `skills/capture-helper/` (SKILL.md with an exhaustive
+  enforced trigger + SKIP description, plus `references/{cli-reference,
+  surfaces,triggers}.md`) and `skills/README.md`; installable as a Claude Skill
+  and an OpenCode skill. Repo-root `TRIGGERS.md` catalogue, referenced from
+  README + LISEZMOI.
+- **Local-first badge + "The Promise" section** in README and LISEZMOI.
+
+### Tests
+
+- `tests/test_scene.py` — scene model, validation, save/load round-trip,
+  graceful device resolution.
+- `tests/test_preview.py` — JPEG encode (synthetic frame) + level maths.
+- `tests/test_api.py` — GUI route 200 HTML, root redirect, scene save/load
+  round-trip, malformed-scene rejection, new endpoints in OpenAPI.
+- `tests/test_cli.py` — scene subcommands present + a scene-auto/validate
+  round-trip.
+
+### Documentation
+
+- README / LISEZMOI: exhaustive Features section (capture layer + scene
+  configurator), six-surface table (adds the browser GUI), refreshed roadmap,
+  install pins bumped to v0.3.0.
+
 ## [0.2.4] - 2026-07-15
 
 ### Documentation
@@ -119,8 +175,8 @@ Initial scaffold.
 
 ### Features at release
 
-- Type-only scaffolding for the OBS-inspired capture/process/publish
-  pipeline (Inputs → Process → Publish).
+- Type-only scaffolding for the capture/process/publish pipeline
+  (Inputs → Process → Publish).
 - Cross-platform device enumeration: camera / microphone / screen /
   window.
 
@@ -132,4 +188,3 @@ Initial scaffold.
 - v0.3 — multi-source mixer
 - v0.4 — RTMP / HLS / Icecast publish (live YouTube / Twitch / podcast)
 - v0.5 — virtual webcam / virtual microphone outputs
-- v0.6 — OBS WebSocket bidirectional control

@@ -54,6 +54,14 @@ def test_openapi_lists_expected_endpoints(client):
         "/input-args",
         "/capture/camera",
         "/capture/mic",
+        # scene configurator + live preview surfaces (v0.3.0)
+        "/gui",
+        "/preview/camera.jpg",
+        "/preview/camera.mjpeg",
+        "/preview/mic-level",
+        "/scene",
+        "/scene/save",
+        "/scene/load",
     }
     assert expected.issubset(set(paths.keys()))
 
@@ -81,3 +89,84 @@ def test_pick_returns_404_when_no_match(client):
     # Either 404 (no matching device / no devices at all) — both are
     # legitimate responses on a headless CI runner.
     assert r.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Scene configurator GUI + endpoints (v0.3.0)
+# ---------------------------------------------------------------------------
+
+
+def test_gui_returns_200_html(client):
+    """``GET /gui`` should return 200 with a self-contained configurator page."""
+    r = client.get("/gui")
+    assert r.status_code == 200
+    # It must be an HTML document (correct content type + a doctype).
+    assert r.headers["content-type"].startswith("text/html")
+    body = r.text.lower()
+    assert "<!doctype html>" in body
+    # Sanity-check it is the scene configurator and wires the real endpoints.
+    assert "scene configurator" in body
+    assert "/sources" in r.text and "/preview/camera.mjpeg" in r.text
+    assert "/scene/save" in r.text and "/scene/load" in r.text
+
+
+def test_root_redirects_to_gui(client):
+    """``GET /`` should redirect (or resolve) to the GUI page."""
+    # follow_redirects defaults True in the TestClient; assert we land on HTML.
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "scene configurator" in r.text.lower()
+
+
+def test_scene_auto_returns_valid_scene(client):
+    """``GET /scene`` returns a well-formed scene (empty of sources on headless CI)."""
+    r = client.get("/scene")
+    assert r.status_code == 200
+    scene = r.json()
+    # Structural invariants that hold regardless of host devices.
+    assert scene["width"] > 0 and scene["height"] > 0
+    assert isinstance(scene["sources"], list)
+
+
+def test_scene_save_load_round_trip(client):
+    """A scene POSTed to ``/scene/save`` round-trips through ``/scene/load``."""
+    scene = {
+        "format_version": 1,
+        "name": "roundtrip",
+        "width": 640,
+        "height": 360,
+        "sources": [
+            {
+                "id": "abc123",
+                "kind": "camera",
+                "label": "cam",
+                "name_substring": "cam",
+                "index": 0,
+                "x": 0,
+                "y": 0,
+                "w": 640,
+                "h": 360,
+                "z": 0,
+                "params": {"fps": 10},
+            }
+        ],
+    }
+    # Save returns the validated artifact as a downloadable JSON file.
+    r = client.post("/scene/save", json=scene)
+    assert r.status_code == 200
+    saved = r.content
+    # Feed the saved bytes back through load; it must validate + echo the scene.
+    r2 = client.post(
+        "/scene/load",
+        files={"file": ("roundtrip.scene.json", saved, "application/json")},
+    )
+    assert r2.status_code == 200
+    back = r2.json()
+    assert back["name"] == "roundtrip"
+    assert len(back["sources"]) == 1 and back["sources"][0]["label"] == "cam"
+
+
+def test_scene_save_rejects_malformed(client):
+    """A malformed scene body should be a clean 400, not a 500."""
+    r = client.post("/scene/save", json={"not": "a scene"})
+    assert r.status_code == 400

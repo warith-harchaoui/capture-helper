@@ -56,7 +56,12 @@ from . import (
     iter_mic_audio,
     list_sources,
     pick_source,
+    resolve_scene_sources,
+    save_scene,
+    scene_from_available_devices,
+    validate_scene,
 )
+from .scene import load_scene
 
 # ---------------------------------------------------------------------------
 # Top-level group
@@ -279,6 +284,62 @@ def capture_mic_cmd(
     )
     if rc != 0:
         sys.exit(rc)
+
+
+# ---------------------------------------------------------------------------
+# Scene configurator subcommands — mirror the argparse twin's names / flags.
+# ---------------------------------------------------------------------------
+
+
+@cli.command("scene-auto")
+@click.option("--name", default="auto", show_default=True, help="Scene name.")
+@click.option(
+    "--output",
+    type=click.Path(),
+    default=None,
+    help="Write the scene JSON here; omit to print to stdout.",
+)
+def scene_auto_cmd(name: str, output: str | None) -> None:
+    """Emit a scene auto-populated from this host's cameras / microphones."""
+    # Seed a scene from the host's devices, then persist or print it.
+    scene = scene_from_available_devices(name)
+    if output:
+        click.echo(save_scene(scene, output))
+    else:
+        click.echo(json.dumps(scene, indent=2))
+
+
+@cli.command("scene-validate")
+@click.option("--input", "input_", required=True, type=click.Path(), help="Scene JSON file.")
+def scene_validate_cmd(input_: str) -> None:
+    """Validate a scene JSON file (exit 0 when well-formed)."""
+    # ``load_scene`` validates on read; re-validate explicitly for clarity.
+    scene = load_scene(input_)
+    validate_scene(scene)
+    click.echo(f"ok: {input_} is a valid scene ({len(scene['sources'])} source(s))")
+
+
+@cli.command("scene-show")
+@click.option("--input", "input_", required=True, type=click.Path(), help="Scene JSON file.")
+def scene_show_cmd(input_: str) -> None:
+    """Load a scene and report how each source resolves on this machine."""
+    scene = load_scene(input_)
+    # Map each recipe onto a live device (or an error) on this host.
+    resolved = resolve_scene_sources(scene)
+    report = {
+        "name": scene["name"],
+        "canvas": [scene["width"], scene["height"]],
+        "sources": [
+            {
+                "label": r["scene_source"]["label"],
+                "kind": r["scene_source"]["kind"],
+                "resolved": r["resolved"],
+                "error": r["error"],
+            }
+            for r in resolved
+        ],
+    }
+    click.echo(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":  # pragma: no cover

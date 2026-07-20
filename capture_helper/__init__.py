@@ -2,14 +2,16 @@
 Capture Helper
 ==============
 
-OBS-inspired (no GUI) **capture + process + publish** library for the
-AI Helpers stack. v0.1.0 ships the **INPUT layer**: cross-platform
-device enumeration + selection (cameras / microphones) and a pair of
-iterators that bridge those devices to the rest of the suite's
-contracts.
+Local-first, library-shaped **camera / microphone capture layer** for the
+AI Helpers stack. It ships the **INPUT layer**: cross-platform device
+enumeration + selection (cameras / microphones) and a pair of iterators
+that bridge those devices to the rest of the suite's contracts — plus a
+**live multi-source scene configurator** (a browser GUI served by the
+FastAPI app) that turns a visual layout of live sources into a reusable
+JSON scene artifact the CLI / API can replay headless.
 
-What ships in v0.1.0
---------------------
+The capture layer
+------------------
 - :class:`SourceKind` — literal ``"camera"`` | ``"microphone"``.
 - :class:`Source` — typed dict describing one device.
 - :class:`MicFrame` — typed dict for one PCM frame (mirrors
@@ -26,11 +28,21 @@ What ships in v0.1.0
   :class:`MicFrame` — same shape as
   :func:`podcast_helper.extract_audio_stream`.
 
-What lands next
----------------
-See :doc:`README` roadmap. v0.2.0 brings screen / window capture and a
-basic filter chain; v0.3.0 brings multi-source mixing; v0.4.0 brings
-RTMP / HLS / Icecast publish.
+The scene configurator (additive, does not touch the iterators)
+---------------------------------------------------------------
+- :class:`Scene` / :class:`SceneSource` — a named canvas of placed
+  sources with per-source capture parameters.
+- :func:`new_scene` / :func:`add_source` — build a scene in code.
+- :func:`save_scene` / :func:`load_scene` / :func:`validate_scene` —
+  persist and reload the visual design as JSON.
+- :func:`resolve_scene_sources` / :func:`scene_from_available_devices` —
+  map a scene onto the current machine's live devices.
+- :func:`snapshot_jpeg` / :func:`iter_camera_jpeg` / :func:`mic_level` —
+  live-preview primitives powering the browser GUI (camera JPEG / MJPEG,
+  microphone level meters).
+
+This is an early-stage project. The public iterator contracts above are
+stable; the scene / preview surface is new and additive.
 
 Usage example
 -------------
@@ -74,8 +86,48 @@ __all__ = [
     # live capture iterators
     "iter_camera_frames",
     "iter_mic_audio",
+    # scene / config model (scene configurator backend)
+    "Scene",
+    "SceneSource",
+    "ResolvedSceneSource",
+    "new_scene",
+    "add_source",
+    "validate_scene",
+    "save_scene",
+    "load_scene",
+    "resolve_scene_sources",
+    "scene_from_available_devices",
+    "SCENE_FORMAT_VERSION",
+    "SCENE_SUFFIX",
+    # live-preview primitives (GUI)
+    "frame_to_jpeg",
+    "snapshot_jpeg",
+    "iter_camera_jpeg",
+    "mic_level",
+    "rms_dbfs",
 ]
 
 from .camera import iter_camera_frames
 from .mic import MicFrame, iter_mic_audio
+from .preview import (
+    frame_to_jpeg,
+    iter_camera_jpeg,
+    mic_level,
+    rms_dbfs,
+    snapshot_jpeg,
+)
+from .scene import (
+    SCENE_FORMAT_VERSION,
+    SCENE_SUFFIX,
+    ResolvedSceneSource,
+    Scene,
+    SceneSource,
+    add_source,
+    load_scene,
+    new_scene,
+    resolve_scene_sources,
+    save_scene,
+    scene_from_available_devices,
+    validate_scene,
+)
 from .sources import Source, SourceKind, ffmpeg_input_args, list_sources, pick_source

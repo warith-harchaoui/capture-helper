@@ -51,7 +51,9 @@ mcp = FastApiMCP(
     name="capture-helper",
     description=(
         "Capture Helper MCP tools: enumerate cameras / microphones, pick one, "
-        "print ffmpeg input argv, snapshot camera frames, record mic to WAV."
+        "print ffmpeg input argv, snapshot camera frames, record mic to WAV, "
+        "live preview (camera JPEG / MJPEG, mic level), and the scene "
+        "configurator (auto-populate / save / load a reusable scene artifact)."
     ),
 )
 # Attach the MCP endpoint to the FastAPI app. Newer fastapi-mcp releases
