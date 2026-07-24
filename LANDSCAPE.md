@@ -1,8 +1,10 @@
-# LANDSCAPE
+# Landscape
+
+[🇫🇷 PAYSAGE.md](https://github.com/warith-harchaoui/capture-helper/blob/main/PAYSAGE.md) · 🇬🇧 English
 
 Related and competing tools in the "capture cameras / microphones /
 screens on any OS from Python" space, benchmarked against
-`capture-helper`. Ratings are `⭐️` (1) to `⭐️⭐️⭐️⭐️⭐️` (5), scored on
+`capture-helper`. Ratings are ⭐ (1) to ⭐⭐⭐⭐⭐ (5), scored on
 `capture-helper`'s intended job — a **library-shaped**,
 **AI-pipeline-first** capture layer with a **browser scene
 configurator**, that composes with the rest of the AI Helpers stack
@@ -12,17 +14,25 @@ penalised — the score just reflects fit to *this* niche.
 
 ## At a glance
 
-| Library / project | Cross-platform enumeration (camera + mic) | Camera capture as `(H, W, 3)` numpy | Mic capture as float32 PCM frames | ffmpeg-native (no C extension of its own) | Live streaming / RTMP output | AI-pipeline ergonomics (`dict` returns, path-based API, drop-in for `video-helper` / `podcast-helper`) | Headless / no-GUI |
+| Live Capture | Cross-platform enumeration | Camera as numpy | Mic as PCM frames | ffmpeg-native | Live streaming | AI-pipeline ergonomics | Headless |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **capture-helper** *(this project)* | ⭐️⭐️⭐️⭐️⭐️ (avfoundation / v4l2 / dshow / pulse) | ⭐️⭐️⭐️⭐️⭐️ (`iter_camera_frames`) | ⭐️⭐️⭐️⭐️⭐️ (`iter_mic_audio`, async, Silero-VAD-shaped) | ⭐️⭐️⭐️⭐️⭐️ (pure subprocess) | ⭐️⭐️ (roadmap v0.4.0 — RTMP / HLS / Icecast) | ⭐️⭐️⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| OpenCV `cv2.VideoCapture` | ⭐️⭐️ (no enumeration API; index-based) | ⭐️⭐️⭐️⭐️⭐️ (native BGR ndarray) | ⭐️ (video only) | ⭐️⭐️ (own C++ backend) | ⭐️ | ⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| PyAV | ⭐️⭐️⭐️ (avdevice bindings, but rough per-OS) | ⭐️⭐️⭐️⭐️ (frame → ndarray) | ⭐️⭐️⭐️ (audio frames) | ⭐️⭐️⭐️⭐️ (libav binding) | ⭐️⭐️⭐️ (writer API) | ⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| sounddevice / soundcard | ⭐️⭐️⭐️⭐️ (audio only) | ⭐️ | ⭐️⭐️⭐️⭐️⭐️ (portaudio, callback-based) | ⭐️ (portaudio) | ⭐️ | ⭐️⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| pyaudio | ⭐️⭐️⭐️ (audio only) | ⭐️ | ⭐️⭐️⭐️⭐️ (portaudio, blocking) | ⭐️ (portaudio) | ⭐️ | ⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| mss / pyautogui / pillow ImageGrab | ⭐️⭐️ (screen only, per-OS shim) | ⭐️⭐️⭐️⭐️ (RGB ndarray) | ⭐️ | ⭐️ | ⭐️ | ⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ |
-| Desktop streaming GUIs (scriptable via a WebSocket API) | ⭐️⭐️⭐️⭐️ (via their own scenes) | ⭐️⭐️ (through their pipeline, not native ndarray) | ⭐️⭐️ (through their pipeline) | ⭐️⭐️⭐️ (their own capture) | ⭐️⭐️⭐️⭐️⭐️ (full RTMP / HLS / recording) | ⭐️⭐️ | ⭐️ (needs the desktop app running) |
-| FFmpeg CLI (raw) | ⭐️⭐️⭐️⭐️⭐️ (`-list_devices`) | ⭐️⭐️ (roll your own reshape) | ⭐️⭐️ (roll your own reshape) | ⭐️⭐️⭐️⭐️⭐️ | ⭐️⭐️⭐️⭐️⭐️ | ⭐️⭐️ (no Python types) | ⭐️⭐️⭐️⭐️⭐️ |
-| GStreamer + PyGObject | ⭐️⭐️⭐️⭐️ (Linux-first) | ⭐️⭐️⭐️ (through appsink) | ⭐️⭐️⭐️ (through appsink) | ⭐️⭐️ (GStreamer plugins) | ⭐️⭐️⭐️⭐️⭐️ (rtmpsink / hlssink) | ⭐️⭐️ | ⭐️⭐️⭐️⭐️ |
+| **capture-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| OpenCV | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| PyAV | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| sounddevice | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| pyaudio | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| mss | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Desktop streaming GUIs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
+| FFmpeg CLI | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| GStreamer | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
+
+## Positioning map
+
+2D representation of the table above.
+
+![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/landscape.png)
+
+The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `capture-helper` is at the top-right corner. The axes read **Horizontal — Camera ↔ Enumeration** and **Vertical — Streaming ↔ Ergonomics**.
 
 ## Positioning
 
@@ -38,6 +48,21 @@ based** `video_helper.extract_frames` / `podcast_helper.extract_audio_stream`.
 That is the main differentiator against every alternative in the
 table above.
 
+Each alternative carries nuance the stars compress. OpenCV's
+`cv2.VideoCapture` has no enumeration API — you address cameras by
+bare index — but hands back a native BGR ndarray. PyAV exposes
+`avdevice` bindings that reach every backend at the cost of rough,
+per-OS setup. sounddevice and pyaudio are portaudio-backed and
+audio-only, callback- and blocking-based respectively. mss (with
+pyautogui / Pillow `ImageGrab`) grabs the screen as an RGB ndarray but
+sees no camera or microphone. Desktop streaming GUIs shine at full
+RTMP / HLS / recording and can be scripted through a WebSocket API, but
+they need the desktop app alive and do not hand you raw frames. The raw
+FFmpeg CLI enumerates with `-list_devices` and streams anywhere, yet
+leaves the reshape and Python typing to you. GStreamer with PyGObject
+is a Linux-first, low-latency pipeline with `rtmpsink` / `hlssink` out
+of the box, heavier to install and less portable.
+
 ## When to pick what
 
 - **`capture-helper`** — headless Python-first capture for AI
@@ -49,6 +74,7 @@ table above.
   wrestling with `avdevice` per-OS.
 - **sounddevice / soundcard** — mic-only, portaudio is acceptable,
   no video.
+- **pyaudio** — mic-only, blocking portaudio reads, no video.
 - **mss / ImageGrab** — screenshots only, no camera or audio.
 - **Desktop streaming GUIs** — you already run a full desktop
   streaming app and want to script scene switches through its

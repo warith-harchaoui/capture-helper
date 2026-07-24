@@ -20,6 +20,8 @@ Local-first, **library-shaped camera / microphone capture layer** for the AI Hel
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
 
+[🗺️ Landscape](https://github.com/warith-harchaoui/capture-helper/blob/main/LANDSCAPE.md)
+
 [📋 Examples](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md)
 
 ## Features
@@ -129,7 +131,7 @@ docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
 
-The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras / microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md). For a comparison against OpenCV / PyAV / sounddevice / FFmpeg CLI / GStreamer and desktop streaming GUIs, see [📋 LANDSCAPE.md](https://github.com/warith-harchaoui/capture-helper/blob/main/LANDSCAPE.md).
+The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras / microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md). For a comparison against OpenCV / PyAV / sounddevice / FFmpeg CLI / GStreamer and desktop streaming GUIs, with a positioning map, see [📋 LANDSCAPE.md](https://github.com/warith-harchaoui/capture-helper/blob/main/LANDSCAPE.md).
 
 ## Installation
 
