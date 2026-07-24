@@ -14,6 +14,7 @@ penalised — the score just reflects fit to *this* niche.
 
 ## At a glance
 
+<!-- TABLE:START -->
 | Live Capture | Cross-platform enumeration | Camera as numpy | Mic as PCM frames | ffmpeg-native | Live streaming | AI-pipeline ergonomics | Headless |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **capture-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -25,14 +26,17 @@ penalised — the score just reflects fit to *this* niche.
 | Desktop streaming GUIs | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
 | FFmpeg CLI | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | GStreamer | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
+<!-- TABLE:END -->
 
 ## Positioning map
 
+<!-- FIGURE:START -->
 2D representation of the table above.
 
 ![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/landscape.png)
 
-The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `capture-helper` is at the top-right corner. The axes read **Horizontal — Camera ↔ Enumeration** and **Vertical — Streaming ↔ Ergonomics**.
+The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `capture-helper` is at the top-right corner. The axes read **Horizontal — Efficient ↔ Versatile** and **Vertical — Real-Time ↔ Ergonomic**.
+<!-- FIGURE:END -->
 
 ## Positioning
 

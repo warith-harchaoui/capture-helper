@@ -15,6 +15,7 @@ seulement l'adéquation à *ce* créneau.
 
 ## En un coup d'œil
 
+<!-- TABLE:START -->
 | Capture en direct | Énumération multi-OS | Caméra en numpy | Micro en trames PCM | Natif ffmpeg | Streaming en direct | Ergonomie pipelines d'IA | Sans interface |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **capture-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
@@ -26,14 +27,17 @@ seulement l'adéquation à *ce* créneau.
 | GUI de streaming de bureau | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
 | FFmpeg CLI | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | GStreamer | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
+<!-- TABLE:END -->
 
 ## Carte de positionnement
 
+<!-- FIGURE:START -->
 Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Numpy ↔ Ration** et **Vertical — Streaming ↔ Ergonomie**.
+La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Simplicité ↔ Flexibilité** et **Vertical — Rapidité ↔ Ergonomie**.
+<!-- FIGURE:END -->
 
 ## Positionnement
 

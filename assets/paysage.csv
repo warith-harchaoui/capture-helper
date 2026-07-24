@@ -1,0 +1,10 @@
+Capture en direct,Énumération multi-OS,Caméra en numpy,Micro en trames PCM,Natif ffmpeg,Streaming en direct,Ergonomie pipelines d'IA,Sans interface
+capture-helper,5,5,5,5,2,5,5
+OpenCV,2,5,1,2,1,3,5
+PyAV,3,4,3,4,3,3,5
+sounddevice,4,1,5,1,1,4,5
+pyaudio,3,1,4,1,1,3,5
+mss,2,4,1,1,1,3,5
+GUI de streaming de bureau,4,2,2,3,5,2,1
+FFmpeg CLI,5,2,2,5,5,2,5
+GStreamer,4,3,3,2,5,2,4

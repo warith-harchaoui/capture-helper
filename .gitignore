@@ -35,8 +35,6 @@ htmlcov/
 capture_tests/
 
 # Generated positioning-map data (rebuilt from LANDSCAPE.md / PAYSAGE.md)
-assets/landscape.csv
-assets/paysage.csv
 
 # --- Credentials (mandate 2026-06-29) -----------------------------------
 # Never commit real config files; the *.example template IS tracked.
