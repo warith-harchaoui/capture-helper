@@ -6,7 +6,7 @@
 
 `Capture Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Couche **de capture caméra / microphone en forme de bibliothèque**, local-first, pour la stack AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle transforme vos caméras et microphones en direct dans les mêmes contrats array / PCM que le reste de la suite consomme — `iter_camera_frames` yield des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper), et `iter_mic_audio` yield des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) — et vous laisse composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur, et enregistrer le design comme une scène JSON réutilisable que la CLI / l'API peut rejouer. Projet à ses débuts : les itérateurs de capture sont stables ; le configurateur de scène est nouveau.
+Couche de capture caméra / microphone **sous forme de bibliothèque**, local-first, pour la suite AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle expose vos caméras et micros en direct dans les mêmes contrats array / PCM que le reste de la suite : `iter_camera_frames` produit des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper), et `iter_mic_audio` produit des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Vous pouvez aussi composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur, et enregistrer le tout comme une scène JSON que la CLI ou l'API rejoue à l'identique. Le projet démarre : les itérateurs de capture sont stables, le configurateur de scène est récent.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -14,7 +14,7 @@ Couche **de capture caméra / microphone en forme de bibliothèque**, local-firs
 
 ## La promesse
 
-**Local-first par conception.** capture-helper s'exécute entièrement sur votre machine ; les données caméra et microphone sont capturées et traitées localement — jamais téléversées vers un service tiers, aucune télémétrie, aucun compte, aucun verrouillage cloud. Fait partie de la suite [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) : la souveraineté sur vos données grâce à l'Open Source local-first.
+**Local-first par conception.** capture-helper s'exécute entièrement sur votre machine : les données caméra et micro sont capturées et traitées en local, jamais envoyées vers un service tiers. Aucune télémétrie, aucun compte, aucun verrouillage cloud. Fait partie de la suite [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) : la souveraineté sur vos données grâce à l'open source local-first.
 
 ## Documentation
 
@@ -26,7 +26,7 @@ Couche **de capture caméra / microphone en forme de bibliothèque**, local-firs
 
 ## Fonctionnalités
 
-Projet à ses débuts, mais voici exactement ce qui existe aujourd'hui.
+Le projet démarre, mais voici précisément ce qui existe aujourd'hui.
 
 **Couche de capture (contrats stables)**
 
@@ -34,20 +34,20 @@ Projet à ses débuts, mais voici exactement ce qui existe aujourd'hui.
 - Dict typé `Source` (kind, name, index, platform, driver)
 - Dict typé `MicFrame` (miroir de [`podcast_helper.PcmFrame`](https://github.com/warith-harchaoui/podcast-helper))
 - `list_sources(kind=None)` — énumération multi-plateforme des périphériques via `ffmpeg -list_devices` (macOS avfoundation / Windows dshow / Linux v4l2 + pulse)
-- `pick_source(kind, *, name_substring=..., index=...)` — sélectionne le premier appareil correspondant ; lève `ValueError` si aucun ne matche
-- `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)` — yield **des arrays numpy BGR uint8 `(H, W, 3)`**, même contrat que `video_helper.extract_frames`
-- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20)` — itérateur async yieldant des `MicFrame`, même contrat que `podcast_helper.extract_audio_stream`
-- `ffmpeg_input_args(source)` — helper bas-niveau exposé pour les utilisateurs qui veulent câbler leur propre pipeline ffmpeg
+- `pick_source(kind, *, name_substring=..., index=...)` — sélectionne le premier appareil correspondant ; lève `ValueError` si aucun ne correspond
+- `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)` — produit **des arrays numpy BGR uint8 `(H, W, 3)`**, même contrat que `video_helper.extract_frames`
+- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20)` — itérateur async produisant des `MicFrame`, même contrat que `podcast_helper.extract_audio_stream`
+- `ffmpeg_input_args(source)` — utilitaire bas niveau, exposé pour qui veut câbler son propre pipeline ffmpeg
 
 **Configurateur de scène multi-sources en direct (nouveau, additif)**
 
-- **GUI navigateur à `GET /gui`** — énumère toutes les caméras + microphones, déposez-les sur un canevas 16:9, **prévisualisez chaque caméra en direct** via un flux MJPEG dans le navigateur, observez les **vumètres de niveau micro en direct**, glissez / arrangez les tuiles, puis **enregistrez le design comme une scène JSON réutilisable** (et rechargez-en une). Sans étape de build : JS vanilla + Tailwind CDN.
+- **GUI navigateur à `GET /gui`** — énumère toutes les caméras et micros, déposez-les sur un canevas 16:9, **prévisualisez chaque caméra en direct** via un flux MJPEG, suivez les **vumètres de niveau micro en direct**, glissez et arrangez les tuiles, puis **enregistrez le tout comme une scène JSON réutilisable** (et rechargez-en une). Sans étape de build : JS vanilla + Tailwind CDN.
 - **Modèle de scène** — dicts typés `Scene` / `SceneSource`, `new_scene(...)`, `add_source(...)`, `validate_scene(...)`, `save_scene(...)`, `load_scene(...)`, `resolve_scene_sources(...)` (mappe une scène sur les appareils de la machine courante), `scene_from_available_devices(...)`.
 - **Primitives de preview live** — `snapshot_jpeg(source)` (un JPEG live), `iter_camera_jpeg(source)` (flux JPEG pour MJPEG), `mic_level(source)` (RMS / crête dBFS pour un vumètre), `frame_to_jpeg(frame)`.
 - **CLI scène** — `capture-helper scene-auto` (auto-remplissage depuis les appareils), `scene-validate`, `scene-show` (rapporte comment chaque source se résout ici).
 - **Endpoints HTTP scène / preview** — `GET /scene`, `POST /scene/save`, `POST /scene/load`, `GET /preview/camera.jpg`, `GET /preview/camera.mjpeg`, `GET /preview/mic-level`.
 
-C'est un **configurateur de scène multi-sources en direct** : une mise en page visuelle de caméras / microphones en direct qui se sérialise en un artefact portable — le design devient une recette de capture headless et scriptable.
+C'est un **configurateur de scène multi-sources en direct** : une mise en page visuelle de caméras et micros qui se sérialise en artefact portable, autrement dit une recette de capture headless et scriptable.
 
 ```python
 import asyncio
@@ -86,13 +86,13 @@ asyncio.run(listen())
 | **ensuite** | INPUT étendue | Capture d'écran / de fenêtre ; chaîne de filtres de base (noise gate, gain, scale) |
 | **plus tard** | PROCESS | Mixeur multi-sources — `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)` rejouant une scène enregistrée vers une sortie unique |
 
-Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, save/load de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs (et le skill Claude / OpenCode), voir [📋 TRIGGERS.md](TRIGGERS.md) et [`skills/capture-helper/`](https://github.com/warith-harchaoui/capture-helper/tree/main/skills/capture-helper).
+Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs (et le skill Claude / OpenCode), voir [📋 TRIGGERS.md](TRIGGERS.md) et [`skills/capture-helper/`](https://github.com/warith-harchaoui/capture-helper/tree/main/skills/capture-helper).
 
 ## Exposition multi-surface
 
 `capture-helper` expose les mêmes capacités à travers **six
-surfaces**, pour qu'elle se branche là où vous travaillez déjà —
-sans réécriture.
+surfaces**, pour se brancher là où vous travaillez déjà, sans
+réécriture.
 
 | Surface | Installation | Point d'entrée | Cas d'usage |
 | --- | --- | --- | --- |
@@ -101,7 +101,7 @@ sans réécriture.
 | **CLI click** | extra `[cli]` | `capture-helper-click …` | Utilisateurs avec stack click-native (complétion, `--help` colorée) |
 | **HTTP FastAPI** | extra `[api]` | `uvicorn capture_helper.api:app` | Service derrière un reverse-proxy, clients JSON / multipart |
 | **GUI navigateur** | extra `[api]` | `GET /gui` | Configurateur de scène multi-sources en direct (preview + arrangement + sauvegarde) |
-| **Tools MCP** | extras `[api,mcp]` | `capture-helper-mcp` | Agents LLM (Claude Desktop, clients MCP custom) |
+| **Outils MCP** | extras `[api,mcp]` | `capture-helper-mcp` | Agents LLM (Claude Desktop, clients MCP sur mesure) |
 
 ```bash
 # CLI (argparse — toujours disponible)
@@ -132,7 +132,7 @@ docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
 
-Le **GUI** à `/gui` est le configurateur de scène multi-sources en direct : il énumère vos caméras / microphones, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le design comme un `.scene.json` réutilisable que la CLI / l'API peut rejouer. Voir [📋 GUI.md](GUI.md).
+La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](GUI.md).
 
 ## Installation
 
@@ -142,9 +142,9 @@ Le **GUI** à `/gui` est le configurateur de scène multi-sources en direct : il
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
 
-Nous recommandons d'utiliser des environnements Python. Consultez ce lien si vous ne savez pas comment en configurer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
+On recommande de travailler dans un environnement Python. Si vous ne savez pas comment en créer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
 
-Il vous faut `ffmpeg` dans le PATH pour que l'énumération de périphériques et la capture live retournent quelque chose.
+Il faut `ffmpeg` dans le PATH pour que l'énumération des périphériques et la capture live renvoient quelque chose.
 
 ### Depuis PyPI (recommandé)
 
