@@ -132,7 +132,7 @@ docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
 
-Le **GUI** à `/gui` est le configurateur de scène multi-sources en direct : il énumère vos caméras / microphones, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le design comme un `.scene.json` réutilisable que la CLI / l'API peut rejouer. Voir [📋 GUI.md](GUI.md). Pour un comparatif face à OpenCV / PyAV / sounddevice / FFmpeg CLI / GStreamer et aux GUI de streaming de bureau, avec une carte de positionnement, voir [📋 PAYSAGE.md](PAYSAGE.md).
+Le **GUI** à `/gui` est le configurateur de scène multi-sources en direct : il énumère vos caméras / microphones, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le design comme un `.scene.json` réutilisable que la CLI / l'API peut rejouer. Voir [📋 GUI.md](GUI.md).
 
 ## Installation
 
