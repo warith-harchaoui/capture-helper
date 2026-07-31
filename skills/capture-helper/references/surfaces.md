@@ -74,19 +74,7 @@ Endpoints:
 
 Temp dirs from capture / save are cleaned via `BackgroundTasks`.
 
-## 4. MCP server — FastAPI-MCP (`capture-helper[api,mcp]`)
-
-```bash
-pip install 'capture-helper[api,mcp]'
-capture-helper-mcp                 # serves FastAPI + MCP on :8000
-# or: python -m capture_helper.mcp
-```
-
-Wraps the exact FastAPI app with `fastapi_mcp` — the same endpoints become MCP
-tools for any MCP-aware host. Host via `CAPTURE_HELPER_HOST` /
-`CAPTURE_HELPER_PORT` env vars.
-
-## 5. GUI — live multi-source scene configurator (`GET /gui`)
+## 4. GUI — live multi-source scene configurator (`GET /gui`)
 
 Served by the FastAPI app; no build step, no framework — a single self-contained
 HTML page (Tailwind via CDN + vanilla ES-module JS) defined in

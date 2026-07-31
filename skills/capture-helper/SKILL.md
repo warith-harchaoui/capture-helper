@@ -12,9 +12,9 @@ description: >-
   visually-designed **scene** (a JSON artifact of placed sources + layout +
   capture params). Exposed as a Python library (`import capture_helper as ch`),
   two CLIs (`capture-helper` argparse and `capture-helper-click`), a FastAPI
-  HTTP surface, an MCP tool set, and a live multi-source scene configurator GUI
-  at `/gui`. Local-first, ffmpeg-backed, no SaaS, no telemetry — camera and mic
-  data never leave the machine.
+  HTTP surface, and a live multi-source scene configurator GUI at `/gui`.
+  Local-first, ffmpeg-backed, no SaaS, no telemetry — camera and mic data
+  never leave the machine.
 
   TRIGGER — any of: the user asks to list / enumerate / discover cameras or
   microphones ("what webcams / mics are available", "list my capture devices",
@@ -31,9 +31,9 @@ description: >-
   canvas", "save this scene / layout as a reusable config", "load / validate /
   run a scene JSON", "auto-populate a scene from my devices"); to print the
   ffmpeg input args for a device ("what's the ffmpeg -f/-i for my webcam"); or
-  to run the capture API / MCP server or open the scene configurator GUI. Also
+  to run the capture API server or open the scene configurator GUI. Also
   fires on explicit mentions of the commands (`capture-helper`,
-  `capture-helper-click`, `capture-helper-mcp`, subcommands `list-sources |
+  `capture-helper-click`, subcommands `list-sources |
   pick-source | input-args | capture-camera | capture-mic | scene-auto |
   scene-validate | scene-show`) or library symbols (`list_sources`,
   `pick_source`, `ffmpeg_input_args`, `iter_camera_frames`, `iter_mic_audio`,

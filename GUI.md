@@ -60,7 +60,7 @@ for r in ch.resolve_scene_sources(scene):
 - **No build step, no framework.** One HTML string, Tailwind from a CDN, a
   single inline ES module. Reduced-motion guard, focus rings, semantic markup.
 - **The GUI adds no server logic.** Every action hits the same HTTP endpoints
-  the CLI / MCP surfaces use — it is purely a friendlier front door.
+  the CLI surface uses — it is purely a friendlier front door.
 - **Local-first.** Every preview stream and every saved scene stays on the
   machine. No upload, no telemetry, no account.
 

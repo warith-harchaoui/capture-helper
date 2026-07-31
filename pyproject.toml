@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "capture-helper"
-version = "0.3.0"
-description = "Capture Helper — local-first, library-shaped camera / microphone capture layer for the AI Helpers stack, with a live multi-source scene configurator GUI. Multi-surface: library + argparse CLI + click CLI + FastAPI HTTP surface (+ browser GUI at /gui) + MCP tools over the INPUT layer (cameras / microphones)."
+version = "0.4.0"
+description = "Capture Helper — local-first, library-shaped camera / microphone capture layer for the AI Helpers stack, with a live multi-source scene configurator GUI. Multi-surface: library + argparse CLI + click CLI + FastAPI HTTP surface (+ browser GUI at /gui)."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 license = {text = "BSD-3-Clause"}
@@ -44,14 +44,6 @@ api = [
     "uvicorn>=0.30,<1",
     "python-multipart>=0.0.9,<1",
 ]
-# MCP surface (capture_helper.mcp). Depends on the `api` extra
-# — fastapi-mcp wraps the FastAPI app.
-mcp = [
-    "fastapi-mcp>=0.3,<1",
-    "fastapi>=0.111,<1",
-    "uvicorn>=0.30,<1",
-    "python-multipart>=0.0.9,<1",
-]
 # `dev` keeps the bar low for CI — pytest + httpx (for FastAPI TestClient)
 # + click (so the click CLI import always resolves in tests) + fastapi
 # stack so surface-smoke tests can run without extra install steps.
@@ -61,7 +53,6 @@ dev = [
     "click>=8.1,<9",
     "fastapi>=0.111,<1",
     "python-multipart>=0.0.9,<1",
-    "fastapi-mcp>=0.3,<1",
 ]
 
 [project.scripts]
@@ -69,8 +60,6 @@ dev = [
 capture-helper = "capture_helper.cli_argparse:main"
 # click-based twin — install with [cli] extra.
 capture-helper-click = "capture_helper.cli_click:cli"
-# MCP server (over FastAPI) — install with [api,mcp] extras.
-capture-helper-mcp = "capture_helper.mcp:main"
 
 [project.urls]
 Homepage = "https://github.com/warith-harchaoui/capture-helper"

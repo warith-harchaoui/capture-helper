@@ -13,7 +13,7 @@ transcribe, or broadcast out.
 
 ## Capabilities → how to invoke
 
-| Intent | CLI | Library | API / MCP |
+| Intent | CLI | Library | API |
 |--------|-----|---------|-----------|
 | List cameras / microphones | `capture-helper list-sources` | `list_sources` | `GET /sources` |
 | Resolve one device | `capture-helper pick-source` | `pick_source` | `GET /pick` |
@@ -49,7 +49,7 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
   "open the scene configurator".
 - **ffmpeg**: "what's the ffmpeg -f / -i for my webcam", "print the input args
   for a device".
-- **Surfaces**: "run the capture API / server", "expose capture as HTTP / MCP",
+- **Surfaces**: "run the capture API / server", "expose capture as HTTP",
   "open the capture GUI".
 
 ## When NOT to use capture-helper (route elsewhere)
@@ -66,7 +66,7 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 
 ## Command / function / driver reference
 
-- Commands: `capture-helper`, `capture-helper-click`, `capture-helper-mcp`.
+- Commands: `capture-helper`, `capture-helper-click`.
 - Subcommands: `list-sources pick-source input-args capture-camera capture-mic
   scene-auto scene-validate scene-show`.
 - Functions: `list_sources pick_source ffmpeg_input_args iter_camera_frames

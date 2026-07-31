@@ -90,7 +90,7 @@ For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview
 
 ## Multi-surface exposure
 
-`capture-helper` ships the same capabilities through **six surfaces**
+`capture-helper` ships the same capabilities through **five surfaces**
 so it plugs in wherever you already work — no rewrite needed.
 
 | Surface | Install | Entry point | Use case |
@@ -100,7 +100,6 @@ so it plugs in wherever you already work — no rewrite needed.
 | **click CLI** | `[cli]` extra | `capture-helper-click …` | Users on a click-native stack (completion, colored `--help`) |
 | **FastAPI HTTP** | `[api]` extra | `uvicorn capture_helper.api:app` | Reverse-proxied service, JSON / multipart clients |
 | **Browser GUI** | `[api]` extra | `GET /gui` | Live multi-source scene configurator (preview + arrange + save) |
-| **MCP tools** | `[api,mcp]` extras | `capture-helper-mcp` | LLM agents (Claude Desktop, custom MCP clients) |
 
 ```bash
 # CLI (argparse — always available)
@@ -123,10 +122,7 @@ curl -o frames.zip \
 uvicorn capture_helper.api:app --port 8000
 # open http://localhost:8000/gui  (or just http://localhost:8000/)
 
-# MCP surface (FastAPI + fastapi-mcp)
-capture-helper-mcp   # serves HTTP routes + MCP endpoint on :8000
-
-# Docker (ships FastAPI + MCP + GUI by default)
+# Docker (ships FastAPI + GUI by default)
 docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
@@ -154,7 +150,6 @@ pip install capture-helper
 # Optional surfaces
 pip install "capture-helper[cli]"       # click-based CLI twin
 pip install "capture-helper[api]"       # FastAPI HTTP surface
-pip install "capture-helper[api,mcp]"   # MCP tools over FastAPI
 ```
 
 ### From source (no PyPI)
@@ -166,7 +161,6 @@ pip install "git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
 # Optional surfaces
 pip install "capture-helper[cli] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
 pip install "capture-helper[api] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
-pip install "capture-helper[api,mcp] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
 ```
 
 ## Author

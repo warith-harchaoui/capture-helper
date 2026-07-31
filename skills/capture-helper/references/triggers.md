@@ -42,7 +42,7 @@ human-reviewable full list). Keep the two in sync, and mirror the repo-root
   device", "how do I open this device in ffmpeg"
 
 **Explicit command / function mentions**
-- `capture-helper`, `capture-helper-click`, `capture-helper-mcp`
+- `capture-helper`, `capture-helper-click`
 - subcommands `list-sources pick-source input-args capture-camera capture-mic
   scene-auto scene-validate scene-show`
 - functions `list_sources pick_source ffmpeg_input_args iter_camera_frames
@@ -51,7 +51,7 @@ human-reviewable full list). Keep the two in sync, and mirror the repo-root
   frame_to_jpeg snapshot_jpeg iter_camera_jpeg mic_level rms_dbfs`
 
 **Surfaces**
-- "run the capture API / capture-helper server", "expose capture as HTTP / MCP"
+- "run the capture API / capture-helper server", "expose capture as HTTP"
 - "open the capture GUI / scene configurator at /gui"
 - "how do I install / run capture-helper"
 

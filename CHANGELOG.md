@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-01
+
+### Removed
+
+- **MCP surface dropped.** `fastapi-mcp`'s latest release (0.4.0) is
+  incompatible with the latest `mcp` SDK (`Server.__init__()` signature
+  mismatch), breaking CI with no available version pairing to pin around.
+  Removed `capture_helper/mcp.py`, the `capture-helper-mcp` entry point, the
+  `mcp` extra, and `fastapi-mcp` from `dev`. The library, both CLIs, the
+  FastAPI HTTP surface, and the browser GUI are unaffected — capture-helper
+  now ships **five** surfaces instead of six. This is a MINOR bump (pre-1.0,
+  removes a public entry point).
+
 ## [0.3.0] - 2026-07-20
 
 Live multi-source scene configurator + backend, and the AI Helpers skill /
