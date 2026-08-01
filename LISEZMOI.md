@@ -86,7 +86,7 @@ asyncio.run(listen())
 | **ensuite** | INPUT étendue | Capture d'écran / de fenêtre ; chaîne de filtres de base (noise gate, gain, scale) |
 | **plus tard** | PROCESS | Mixeur multi-sources — `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)` rejouant une scène enregistrée vers une sortie unique |
 
-Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs (et le skill Claude / OpenCode), voir [📋 TRIGGERS.md](TRIGGERS.md) et [`skills/capture-helper/`](https://github.com/warith-harchaoui/capture-helper/tree/main/skills/capture-helper).
+Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs, voir [📋 TRIGGERS.md](TRIGGERS.md).
 
 ## Exposition multi-surface
 

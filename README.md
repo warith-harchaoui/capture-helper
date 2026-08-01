@@ -86,7 +86,7 @@ asyncio.run(listen())
 | **next** | INPUT extended | Screen / window capture; basic filter chain (noise gate, gain, scale) |
 | **later** | PROCESS | Multi-source mixer — `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)` running a saved scene into a single output |
 
-For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview, scene save/load, ASR / VAD wiring), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md). For the exhaustive trigger catalogue (and the Claude / OpenCode skill), see [📋 TRIGGERS.md](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md) and [`skills/capture-helper/`](https://github.com/warith-harchaoui/capture-helper/tree/main/skills/capture-helper).
+For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview, scene save/load, ASR / VAD wiring), see [📋 EXAMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md). For the exhaustive trigger catalogue, see [📋 TRIGGERS.md](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md).
 
 ## Multi-surface exposure
 

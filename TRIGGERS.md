@@ -2,9 +2,7 @@
 
 This is the user-facing, exhaustive catalogue of what `capture-helper` can do and
 the natural-language phrasings, commands, functions, and situations that should
-invoke it — whether you call it yourself or drive it as a Claude / OpenCode
-**skill** (see [`skills/capture-helper/SKILL.md`](skills/capture-helper/SKILL.md)
-and its [`references/triggers.md`](skills/capture-helper/references/triggers.md)).
+invoke it.
 
 `capture-helper` reads **live cameras and microphones** and lets you design
 reusable multi-source **scenes**. It is local-first and ffmpeg-backed — camera
