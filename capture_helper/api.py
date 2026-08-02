@@ -431,7 +431,9 @@ def preview_camera_mjpeg(
     output_width: int = Query(480, ge=16, le=3840),
     output_height: int = Query(270, ge=16, le=2160),
     fps: float = Query(10.0, gt=0, le=60),
-    max_frames: int | None = Query(None, description="Stop after N frames; omit = until disconnect."),
+    max_frames: int | None = Query(
+        None, description="Stop after N frames; omit = until disconnect."
+    ),
 ):
     """Stream the selected camera as ``multipart/x-mixed-replace`` MJPEG.
 
@@ -526,9 +528,7 @@ def preview_mic_level(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     # The level helper is async; drive it to completion in this sync endpoint.
-    level = asyncio.run(
-        mic_level(src, target_sample_rate=sample_rate, window_ms=window_ms)
-    )
+    level = asyncio.run(mic_level(src, target_sample_rate=sample_rate, window_ms=window_ms))
     return JSONResponse(level)
 
 

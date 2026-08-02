@@ -1,16 +1,16 @@
 # Capture Helper
 
-[🇫🇷](LISEZMOI.md) · [🇬🇧](README.md)
+[🇫🇷](https://github.com/warith-harchaoui/capture-helper/blob/main/LISEZMOI.md) · [🇬🇧](https://github.com/warith-harchaoui/capture-helper/blob/main/README.md)
 
-[![CI](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#) [![Local-first](https://img.shields.io/badge/privacy-local--first-2f6f5e.svg)](#la-promesse)
+[![CI](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/warith-harchaoui/capture-helper/blob/main/LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#) [![Local-first](https://img.shields.io/badge/privacy-local--first-2f6f5e.svg)](#la-promesse)
 
 `Capture Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Couche de capture caméra / microphone **sous forme de bibliothèque**, local-first, pour la suite AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle expose vos caméras et micros en direct dans les mêmes contrats array / PCM que le reste de la suite : `iter_camera_frames` produit des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper), et `iter_mic_audio` produit des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Vous pouvez aussi composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur, et enregistrer le tout comme une scène JSON que la CLI ou l'API rejoue à l'identique. Le projet démarre : les itérateurs de capture sont stables, le configurateur de scène est récent.
+Couche de capture caméra / microphone **sous forme de bibliothèque**, local-first, pour la suite AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle expose vos caméras et micros en direct dans les mêmes contrats array / PCM que le reste de la suite : `iter_camera_frames` produit des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper), et `iter_mic_audio` produit des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Vous pouvez aussi composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur, et enregistrer le tout comme une scène JSON que la CLI ou l'API rejoue à l'identique. Les itérateurs de capture sont des contrats stables ; le configurateur de scène, ajouté plus récemment, complète la boîte à outils.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
-[![logo](assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
 
 ## La promesse
 
@@ -26,7 +26,7 @@ Couche de capture caméra / microphone **sous forme de bibliothèque**, local-fi
 
 ## Fonctionnalités
 
-Le projet démarre, mais voici précisément ce qui existe aujourd'hui.
+Voici précisément ce qui existe aujourd'hui.
 
 **Couche de capture (contrats stables)**
 
@@ -86,7 +86,7 @@ asyncio.run(listen())
 | **ensuite** | INPUT étendue | Capture d'écran / de fenêtre ; chaîne de filtres de base (noise gate, gain, scale) |
 | **plus tard** | PROCESS | Mixeur multi-sources — `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)` rejouant une scène enregistrée vers une sortie unique |
 
-Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs, voir [📋 TRIGGERS.md](TRIGGERS.md).
+Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantané, preview live, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs, voir [📋 TRIGGERS.md](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md).
 
 ## Exposition multi-surface
 
@@ -128,7 +128,7 @@ docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
 
-La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](GUI.md).
+La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
 ## Installation
 
@@ -157,11 +157,11 @@ pip install "capture-helper[api]"       # surface HTTP FastAPI
 
 ```bash
 # Couche INPUT de base
-pip install "git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
+pip install capture-helper
 
 # Surfaces optionnelles
-pip install "capture-helper[cli] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
-pip install "capture-helper[api] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
+pip install "capture-helper[cli]"
+pip install "capture-helper[api]"
 ```
 
 ## Auteur
@@ -174,4 +174,4 @@ Remerciements chaleureux à [Mohamed Chelali](https://mchelali.github.io) et [Ba
 
 ## Licence
 
-Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](LICENSE) pour les détails.
+Ce projet est distribué sous licence BSD-3-Clause — voir le fichier [LICENSE](https://github.com/warith-harchaoui/capture-helper/blob/main/LICENSE) pour les détails.

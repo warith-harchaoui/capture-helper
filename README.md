@@ -6,7 +6,7 @@
 
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
-Local-first, **library-shaped camera / microphone capture layer** for the AI Helpers stack, with a **live multi-source scene configurator** GUI. It turns your live cameras and microphones into the same array / PCM contracts the rest of the suite consumes — `iter_camera_frames` yields `(H, W, 3)` BGR uint8 arrays like [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames`, and `iter_mic_audio` yields `MicFrame`s like [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream` — and lets you compose several live sources on a canvas, preview them in the browser, and save the design as a reusable JSON scene the CLI / API can replay. Early-stage: the capture iterators are stable; the scene configurator is new.
+Local-first, **library-shaped camera / microphone capture layer** for the AI Helpers stack, with a **live multi-source scene configurator** GUI. It turns your live cameras and microphones into the same array / PCM contracts the rest of the suite consumes — `iter_camera_frames` yields `(H, W, 3)` BGR uint8 arrays like [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames`, and `iter_mic_audio` yields `MicFrame`s like [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream` — and lets you compose several live sources on a canvas, preview them in the browser, and save the design as a reusable JSON scene the CLI / API can replay. The capture iterators are stable contracts; the scene configurator, added more recently, rounds out the toolkit.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -26,7 +26,7 @@ Local-first, **library-shaped camera / microphone capture layer** for the AI Hel
 
 ## Features
 
-Early-stage, but here is exactly what exists today.
+Here is exactly what exists today.
 
 **Capture layer (stable contracts)**
 
@@ -156,11 +156,11 @@ pip install "capture-helper[api]"       # FastAPI HTTP surface
 
 ```bash
 # Core INPUT layer
-pip install "git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
+pip install capture-helper
 
 # Optional surfaces
-pip install "capture-helper[cli] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
-pip install "capture-helper[api] @ git+https://github.com/warith-harchaoui/capture-helper.git@v0.3.0"
+pip install "capture-helper[cli]"
+pip install "capture-helper[api]"
 ```
 
 ## Author
@@ -173,4 +173,4 @@ Special thanks to [Mohamed Chelali](https://mchelali.github.io) and [Bachir Zerr
 
 ## License
 
-This project is licensed under the BSD-3-Clause License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD-3-Clause License — see the [LICENSE](https://github.com/warith-harchaoui/capture-helper/blob/main/LICENSE) file for details.
