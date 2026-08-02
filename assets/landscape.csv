@@ -1,10 +1,11 @@
 Live Capture,Cross-platform enumeration,Camera as numpy,Mic as PCM frames,ffmpeg-native,Live streaming,AI-pipeline ergonomics,Headless
 capture-helper,5,5,5,5,2,5,5
-OpenCV,2,5,1,2,1,3,5
+OpenCV,1,5,1,2,1,3,5
 PyAV,3,4,3,4,3,3,5
-sounddevice,4,1,5,1,1,4,5
-pyaudio,3,1,4,1,1,3,5
-mss,2,4,1,1,1,3,5
-Desktop streaming GUIs,4,2,2,3,5,2,1
+sounddevice,3,1,5,1,1,4,5
+PyAudio,2,1,3,1,1,2,5
+mss,1,2,1,1,1,3,5
+VidGear,2,5,1,4,5,4,5
+OBS Studio,4,2,2,3,5,2,1
 FFmpeg CLI,5,2,2,5,5,2,5
 GStreamer,4,3,3,2,5,2,4

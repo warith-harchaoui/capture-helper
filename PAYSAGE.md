@@ -19,12 +19,13 @@ seulement l'adéquation à *ce* créneau.
 | Capture en direct | Énumération multi-OS | Caméra en numpy | Micro en trames PCM | Natif ffmpeg | Streaming en direct | Ergonomie pipelines d'IA | Sans interface |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **capture-helper** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| OpenCV | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| OpenCV | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | PyAV | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| sounddevice | ⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| pyaudio | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| mss | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| GUI de streaming de bureau | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
+| sounddevice | ⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| PyAudio | ⭐⭐ | ⭐ | ⭐⭐⭐ | ⭐ | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| mss | ⭐ | ⭐⭐ | ⭐ | ⭐ | ⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| VidGear | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| OBS Studio | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐ |
 | FFmpeg CLI | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 | GStreamer | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ |
 <!-- TABLE:END -->
@@ -36,7 +37,7 @@ Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Rapidité ↔ Polyvalence** et **Vertical — Flexibilité ↔ Simplicité**.
+La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Simplicité ↔ Polyvalence** et **Vertical — Précision ↔ Intuitivité**.
 <!-- FIGURE:END -->
 
 ## Positionnement
@@ -63,10 +64,13 @@ d'une mise en place rugueuse et propre à chaque OS. sounddevice et
 pyaudio reposent sur portaudio et ne traitent que l'audio,
 respectivement par callback et en mode bloquant. mss (avec pyautogui /
 `ImageGrab` de Pillow) capture l'écran en ndarray RGB mais ne voit ni
-caméra ni microphone. Les GUI de streaming de bureau excellent au
-RTMP / HLS / enregistrement complet et se scriptent via une API
-WebSocket, mais exigent que l'application de bureau reste active et ne
-vous rendent pas les trames brutes. La CLI FFmpeg brute énumère avec
+caméra ni microphone. VidGear enveloppe OpenCV pour les trames caméra et
+superpose un streaming piloté par FFmpeg (`WriteGear` / `StreamGear`), si
+bien qu'il capture et diffuse bien la vidéo mais n'expose aucun chemin
+microphone. OBS Studio excelle au RTMP / HLS / enregistrement complet et
+se script via son API WebSocket, mais exige que l'application de bureau
+reste active et ne vous rend pas les trames brutes. La CLI FFmpeg brute
+énumère avec
 `-list_devices` et diffuse partout, mais vous laisse le remodelage et le
 typage Python à charge. GStreamer avec PyGObject est un pipeline
 Linux-first à faible latence, avec `rtmpsink` / `hlssink` prêts à
@@ -83,15 +87,17 @@ l'emploi, plus lourd à installer et moins portable.
   d'énumération multi-OS.
 - **PyAV** — vous voulez un accès direct à libav et acceptez de vous
   battre avec `avdevice` par OS.
-- **sounddevice / soundcard** — micro seulement, portaudio acceptable,
+- **sounddevice** — micro seulement, lectures portaudio par callback,
   pas de vidéo.
-- **pyaudio** — micro seulement, lectures portaudio bloquantes, pas de
+- **PyAudio** — micro seulement, lectures portaudio bloquantes, pas de
   vidéo.
-- **mss / ImageGrab** — captures d'écran seulement, ni caméra ni audio.
-- **GUI de streaming de bureau** — vous exécutez déjà une application de
-  streaming de bureau complète et voulez scripter les changements de
-  scène via son API WebSocket, pas consommer des trames brutes en
-  Python.
+- **mss** — captures d'écran seulement, ni caméra ni audio.
+- **VidGear** — vous voulez un framework vidéo performant adossé à
+  OpenCV avec streaming FFmpeg intégré ; caméras seulement, aucun chemin
+  microphone.
+- **OBS Studio** — vous exécutez déjà l'application de streaming de
+  bureau complète et voulez scripter les changements de scène via son
+  API WebSocket, pas consommer des trames brutes en Python.
 - **FFmpeg CLI (brute)** — vous voulez zéro dépendance Python et
   acceptez d'écrire vous-même le remodelage et la plomberie.
 - **GStreamer + PyGObject** — pipelines Linux-first à faible latence
