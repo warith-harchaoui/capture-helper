@@ -6,7 +6,7 @@
 
 `Capture Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Couche de capture caméra / microphone **sous forme de bibliothèque**, local-first, pour la suite AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle expose vos caméras et micros en direct dans les mêmes contrats array / PCM que le reste de la suite : `iter_camera_frames` produit des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper), et `iter_mic_audio` produit des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Vous pouvez aussi composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur, et enregistrer le tout comme une scène JSON que la CLI ou l'API rejoue à l'identique. Les itérateurs de capture sont des contrats stables ; le configurateur de scène, ajouté plus récemment, complète la boîte à outils.
+Couche de capture caméra / microphone **sous forme de bibliothèque**, local-first, pour la suite AI Helpers, avec un **configurateur de scène multi-sources en direct** (GUI). Elle expose vos caméras et micros en direct dans les mêmes contrats array / PCM que le reste de la suite : `iter_camera_frames` produit des arrays BGR uint8 `(H, W, 3)` comme `extract_frames` de [video-helper](https://github.com/warith-harchaoui/video-helper) et `iter_mic_audio` produit des `MicFrame` comme `extract_audio_stream` de [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Vous pouvez aussi composer plusieurs sources en direct sur un canevas, les prévisualiser dans le navigateur et enregistrer le tout comme une scène JSON que la CLI ou l'API rejoue à l'identique. Les itérateurs de capture sont des contrats stables ; le configurateur de scène, ajouté plus récemment, complète la boîte à outils.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -82,7 +82,7 @@ asyncio.run(listen())
 |---|---|---|
 | v0.0.1 | Squelette INPUT | `list_sources` + types |
 | **v0.1.0** | INPUT | `pick_source(...)` + `iter_camera_frames(source, ...)` + `iter_mic_audio(source, ...)` — compose avec les contrats de video-helper / podcast-helper |
-| **v0.3.0** (cette release) | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de preview live (JPEG / MJPEG caméra, niveau micro), et le configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
+| **v0.3.0** (cette release) | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de preview live (JPEG / MJPEG caméra, niveau micro) et le configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
 | **ensuite** | INPUT étendue | Capture d'écran / de fenêtre ; chaîne de filtres de base (noise gate, gain, scale) |
 | **plus tard** | PROCESS | Mixeur multi-sources — `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)` rejouant une scène enregistrée vers une sortie unique |
 
@@ -128,7 +128,7 @@ docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
 ```
 
-La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
+La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
 ## Installation
 
