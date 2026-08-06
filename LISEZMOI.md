@@ -90,7 +90,7 @@ Pour un cookbook complet (chaînes d'entrée ffmpeg par OS, capture d'instantan�
 
 ## Exposition multi-surface
 
-`capture-helper` expose les mêmes capacités à travers **cinq
+`capture-helper` expose les mêmes capacités à travers **six
 surfaces**, pour se brancher là où vous travaillez déjà, sans
 réécriture.
 
@@ -101,6 +101,7 @@ réécriture.
 | **CLI click** | extra `[cli]` | `capture-helper-click …` | Utilisateurs avec stack click-native (complétion, `--help` colorée) |
 | **HTTP FastAPI** | extra `[api]` | `uvicorn capture_helper.api:app` | Service derrière un reverse-proxy, clients JSON / multipart |
 | **GUI navigateur** | extra `[api]` | `GET /gui` | Configurateur de scène multi-sources en direct (preview + arrangement + sauvegarde) |
+| **MCP** | extra `[mcp]` | `capture-helper-mcp` | Tout hôte agentique compatible MCP (même app FastAPI, endpoint `/mcp`) |
 
 ```bash
 # CLI (argparse — toujours disponible)

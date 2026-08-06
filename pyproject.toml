@@ -44,8 +44,19 @@ api = [
     "uvicorn>=0.30,<1",
     "python-multipart>=0.0.9,<1",
 ]
+# MCP surface (capture_helper.mcp) — fastapi-mcp wraps the FastAPI app, so it
+# needs the api extra's runtime deps too.
+mcp = [
+    "capture-helper[api]",
+    "fastapi-mcp>=0.3,<1",
+    # Cap the MCP SDK below 2.0: fastapi-mcp 0.4.0 declares only `mcp>=1.12`
+    # (no upper bound), but mcp 2.0.0 changed the low-level `Server.__init__`
+    # signature and breaks fastapi-mcp at import. Pin to the 1.x line until
+    # fastapi-mcp ships a 2.x-compatible release (same issue hit md2star).
+    "mcp>=1.12,<2",
+]
 # `dev` keeps the bar low for CI — pytest + httpx (for FastAPI TestClient)
-# + click (so the click CLI import always resolves in tests) + fastapi
+# + click (so the click CLI import always resolves in tests) + fastapi/mcp
 # stack so surface-smoke tests can run without extra install steps.
 dev = [
     "pytest>=8",
@@ -53,6 +64,8 @@ dev = [
     "click>=8.1,<9",
     "fastapi>=0.111,<1",
     "python-multipart>=0.0.9,<1",
+    "fastapi-mcp>=0.3,<1",
+    "mcp>=1.12,<2",
 ]
 
 [project.scripts]
@@ -60,6 +73,8 @@ dev = [
 capture-helper = "capture_helper.cli_argparse:main"
 # click-based twin — install with [cli] extra.
 capture-helper-click = "capture_helper.cli_click:cli"
+# MCP server — install with [mcp] extra.
+capture-helper-mcp = "capture_helper.mcp:main"
 
 [project.urls]
 Homepage = "https://github.com/warith-harchaoui/capture-helper"

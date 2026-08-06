@@ -90,7 +90,7 @@ For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview
 
 ## Multi-surface exposure
 
-`capture-helper` ships the same capabilities through **five surfaces**
+`capture-helper` ships the same capabilities through **six surfaces**
 so it plugs in wherever you already work — no rewrite needed.
 
 | Surface | Install | Entry point | Use case |
@@ -100,6 +100,7 @@ so it plugs in wherever you already work — no rewrite needed.
 | **click CLI** | `[cli]` extra | `capture-helper-click …` | Users on a click-native stack (completion, colored `--help`) |
 | **FastAPI HTTP** | `[api]` extra | `uvicorn capture_helper.api:app` | Reverse-proxied service, JSON / multipart clients |
 | **Browser GUI** | `[api]` extra | `GET /gui` | Live multi-source scene configurator (preview + arrange + save) |
+| **MCP** | `[mcp]` extra | `capture-helper-mcp` | Any MCP-aware agent host (same FastAPI app, `/mcp` endpoint) |
 
 ```bash
 # CLI (argparse — always available)

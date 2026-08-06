@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **MCP surface** (`capture_helper.mcp`, `[mcp]` extra, entry point
+  `capture-helper-mcp`): exposes the existing FastAPI app as MCP tools via
+  `fastapi-mcp`, mirroring the pattern already shipped in `standpoint` /
+  `vocal-helper` / `md2star` / `os-helper`. Closes the CLI/API/MCP surface
+  gap flagged in `ai-helpers/.private/do.md` §7. Several tools (camera/mic
+  capture and preview) open a real local device — flagged explicitly in the
+  MCP tool description for host awareness.
+
 ## [1.0.0] - 2026-08-02
 
 First stable release. The capture iterators (`iter_camera_frames`,
