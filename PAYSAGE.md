@@ -37,7 +37,7 @@ Représentation 2D du tableau ci-dessus.
 
 ![Carte de positionnement](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/paysage.png)
 
-La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Simplicité ↔ Polyvalence** et **Vertical — Précision ↔ Intuitivité**.
+La carte est un résumé en 2D des 7 critères : à lire comme une forme, pas comme un classement. « capture-helper » se situe dans le coin en haut à droite. Les axes se lisent **Horizontal — Autonomie ↔ Maîtrise** et **Vertical — Adaptabilité ↔ Efficacité**.
 <!-- FIGURE:END -->
 
 ## Positionnement

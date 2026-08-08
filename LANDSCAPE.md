@@ -36,7 +36,7 @@ penalised — the score just reflects fit to *this* niche.
 
 ![Positioning map](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/landscape.png)
 
-The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `capture-helper` is at the top-right corner. The axes read **Horizontal — Efficiency ↔ Flexibility** and **Vertical — Interactivity ↔ Automation**.
+The map is a 2-D summary of the seven criteria, so read it as a shape, not a scoreboard. `capture-helper` is at the top-right corner. The axes read **Horizontal — Adaptable ↔ Versatile** and **Vertical — Accessible ↔ Intuitive**.
 <!-- FIGURE:END -->
 
 ## Positioning
