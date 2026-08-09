@@ -245,21 +245,3 @@ async def test_iter_mic_audio_rejects_camera_source() -> None:
     with pytest.raises(ValueError, match="microphone source"):
         async for _ in ch.iter_mic_audio(cam_src):
             pass
-
-
-# Note: we don't ship pytest-asyncio in dev deps yet — guard the async
-# test so the suite still passes without that plugin installed. The
-# sync tests above already cover the bulk of v0.1.0.
-def _has_asyncio_plugin() -> bool:
-    try:
-        import pytest_asyncio  # noqa: F401
-    except ImportError:
-        return False
-    return True
-
-
-if not _has_asyncio_plugin():
-    # Replace the marker with a skip so plain pytest still passes.
-    test_iter_mic_audio_rejects_camera_source = pytest.mark.skip(  # type: ignore[assignment]
-        reason="pytest-asyncio not installed; covered manually in EXAMPLES.md"
-    )(test_iter_mic_audio_rejects_camera_source)
