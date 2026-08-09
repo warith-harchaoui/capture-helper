@@ -76,6 +76,40 @@ async def listen():
 asyncio.run(listen())
 ```
 
+## Installation
+
+**Prérequis** — **Python 3.10–3.13** et **git**, **ffmpeg**, **PortAudio**, multiplateforme :
+
+- 🍎 **macOS** ([Homebrew](https://brew.sh)) : `brew install python git ffmpeg portaudio`
+- 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
+- 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
+
+On recommande de travailler dans un environnement Python. Si vous ne savez pas comment en créer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
+
+Il faut `ffmpeg` dans le PATH pour que l'énumération des périphériques et la capture live renvoient quelque chose.
+
+### Depuis PyPI (recommandé)
+
+```bash
+# Couche INPUT de base (list/pick sources, itérateurs caméra + micro)
+pip install capture-helper
+
+# Surfaces optionnelles
+pip install "capture-helper[cli]"       # jumeau CLI click
+pip install "capture-helper[api]"       # surface HTTP FastAPI
+```
+
+### Depuis les sources (sans PyPI)
+
+```bash
+# Couche INPUT de base
+pip install capture-helper
+
+# Surfaces optionnelles
+pip install "capture-helper[cli]"
+pip install "capture-helper[api]"
+```
+
 ## Roadmap
 
 | Version | Couche | Périmètre |
@@ -130,40 +164,6 @@ docker run --rm -p 8000:8000 capture-helper
 ```
 
 La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas et enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
-
-## Installation
-
-**Prérequis** — **Python 3.10–3.13** et **git**, **ffmpeg**, **PortAudio**, multiplateforme :
-
-- 🍎 **macOS** ([Homebrew](https://brew.sh)) : `brew install python git ffmpeg portaudio`
-- 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
-- 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
-
-On recommande de travailler dans un environnement Python. Si vous ne savez pas comment en créer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
-
-Il faut `ffmpeg` dans le PATH pour que l'énumération des périphériques et la capture live renvoient quelque chose.
-
-### Depuis PyPI (recommandé)
-
-```bash
-# Couche INPUT de base (list/pick sources, itérateurs caméra + micro)
-pip install capture-helper
-
-# Surfaces optionnelles
-pip install "capture-helper[cli]"       # jumeau CLI click
-pip install "capture-helper[api]"       # surface HTTP FastAPI
-```
-
-### Depuis les sources (sans PyPI)
-
-```bash
-# Couche INPUT de base
-pip install capture-helper
-
-# Surfaces optionnelles
-pip install "capture-helper[cli]"
-pip install "capture-helper[api]"
-```
 
 ## Auteur
 
