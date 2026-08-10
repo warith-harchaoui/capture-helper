@@ -22,7 +22,7 @@ Couche de capture caméra / microphone **sous forme de bibliothèque**, local-fi
 
 [🗺️ Paysage](https://github.com/warith-harchaoui/capture-helper/blob/main/PAYSAGE.md)
 
-[📋 Exemples](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md)
+[📋 Exemples](https://github.com/warith-harchaoui/capture-helper/blob/main/EXEMPLES.md)
 
 ## Fonctionnalités
 
