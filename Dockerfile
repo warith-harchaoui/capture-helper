@@ -38,13 +38,17 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 RUN useradd --create-home --shell /bin/bash app
 WORKDIR /app
 
-# Copy the package first so pip picks up pyproject.toml before we
-# invalidate the layer with source changes.
+# requirements.txt first (core deps only) so this layer caches independently
+# of source changes; the package itself (with its extras) is installed once
+# the source is in place, right below.
+COPY --chown=app:app requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
 COPY --chown=app:app pyproject.toml README.md LICENSE ./
 COPY --chown=app:app capture_helper ./capture_helper
 
-RUN pip install --no-cache-dir --upgrade pip \
- && pip install --no-cache-dir '.[api]'
+RUN pip install --no-cache-dir '.[api]'
 
 USER app
 EXPOSE 8000
