@@ -14,6 +14,9 @@ Subcommands
 - ``input-args``      — print the ffmpeg ``-f DRIVER -i SPEC`` argv fragment
 - ``capture-camera``  — grab N frames from a camera and write them to disk
 - ``capture-mic``     — record N seconds of microphone PCM to a WAV file
+- ``stream-mic``      — stream live raw f32le PCM from the microphone to
+  stdout, unbounded, for another process to consume (e.g. a Rust/native
+  live pipeline spawning this CLI the same way it would spawn ffmpeg)
 - ``scene-auto``      — emit a scene auto-populated from this host's devices
 - ``scene-validate``  — validate a scene JSON file (exit 0 if well-formed)
 - ``scene-show``      — load a scene and report how each source resolves here
@@ -27,6 +30,7 @@ Usage Example
 >>> #   capture-helper capture-camera --output-dir frames/ --output-width 640 \\
 >>> #       --output-height 360 --fps 30 --max-frames 30
 >>> #   capture-helper capture-mic --output mic.wav --seconds 3
+>>> #   capture-helper stream-mic | my-live-consumer  # raw f32le PCM on stdout
 
 Author
 ------
@@ -309,6 +313,94 @@ def _handle_capture_mic(ns: argparse.Namespace) -> int:
     )
 
 
+async def _stream_mic_to_stdout(
+    src: dict,
+    *,
+    target_sample_rate: int,
+    to_mono: bool,
+    frame_ms: int,
+    max_frames: int | None,
+) -> int:
+    """Pipe the live mic iterator straight to stdout as raw f32le PCM.
+
+    Unlike :func:`_mic_to_wav`, nothing is buffered in memory and no WAV
+    header is written: each frame's samples are written to
+    ``sys.stdout.buffer`` and flushed as they arrive, so a downstream
+    process reading this CLI's stdout sees the exact same byte stream it
+    would get from piping ffmpeg's own ``-f f32le -`` output — the
+    convention already used everywhere else in this codebase (and by
+    ``podcast_helper``'s URL streaming). stdout carries ONLY PCM bytes;
+    all diagnostics go to stderr so the stream stays uncorrupted.
+    """
+    out = sys.stdout.buffer
+    yielded = 0
+    try:
+        async for frame in iter_mic_audio(
+            src,
+            target_sample_rate=target_sample_rate,
+            to_mono=to_mono,
+            frame_ms=frame_ms,
+            max_frames=max_frames,
+        ):
+            pcm = np.ascontiguousarray(frame["pcm"], dtype=np.float32)
+            out.write(pcm.tobytes())
+            out.flush()
+            yielded += 1
+    except BrokenPipeError:
+        # The consumer stopped reading (closed/killed its end of the
+        # pipe) — an expected, clean shutdown for an unbounded live
+        # stream, not an error.
+        return 0
+    if yielded == 0:
+        print("capture-helper: no audio captured (permission denied?)", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _handle_stream_mic(ns: argparse.Namespace) -> int:
+    """Handle the ``stream-mic`` subcommand.
+
+    Same device selection and framing as ``capture-mic``, but streams raw
+    PCM to stdout live instead of collecting it into a WAV file — the
+    primitive an external live pipeline (Rust core, another language)
+    spawns as a subprocess and reads from, the same way it would spawn
+    ffmpeg directly.
+
+    Parameters
+    ----------
+    ns : argparse.Namespace
+        Parsed arguments; reads the device filters plus ``seconds`` /
+        ``sample_rate`` / ``frame_ms`` / ``mono``.
+
+    Returns
+    -------
+    int
+        Process exit code — ``0`` on success (including a clean stop via
+        Ctrl-C or the consumer closing the pipe), ``2`` if no audio was
+        captured at all.
+    """
+    max_frames: int | None = None
+    if ns.seconds is not None:
+        frames_per_sec = max(1, 1000 // ns.frame_ms)
+        max_frames = int(ns.seconds * frames_per_sec)
+
+    src = pick_source("microphone", name_substring=ns.name, index=ns.index)
+    try:
+        return asyncio.run(
+            _stream_mic_to_stdout(
+                src,
+                target_sample_rate=ns.sample_rate,
+                to_mono=ns.mono,
+                frame_ms=ns.frame_ms,
+                max_frames=max_frames,
+            )
+        )
+    except KeyboardInterrupt:
+        # Ctrl-C (or the parent process sending SIGINT) is the normal way
+        # to stop an unbounded live stream — not an error.
+        return 0
+
+
 # ---------------------------------------------------------------------------
 # Scene subcommand handlers — the visually-designed scene becomes a headless,
 # scriptable artifact through these.
@@ -569,6 +661,50 @@ def _add_capture_mic(sub: argparse._SubParsersAction) -> None:
     p.set_defaults(func=_handle_capture_mic)
 
 
+def _add_stream_mic(sub: argparse._SubParsersAction) -> None:
+    """Register the ``stream-mic`` subparser.
+
+    Parameters
+    ----------
+    sub : argparse._SubParsersAction
+        The sub-parsers action to attach this subcommand to.
+    """
+    # Stream raw f32le PCM to stdout, live, until stopped.
+    p = sub.add_parser(
+        "stream-mic",
+        help="Stream live microphone PCM (raw f32le) to stdout, unbounded by default.",
+    )
+    p.add_argument("--name", default=None, help="Case-insensitive substring on the device name.")
+    p.add_argument("--index", type=int, default=None, help="Exact index match.")
+    p.add_argument(
+        "--seconds",
+        type=float,
+        default=None,
+        help="Stop after this many seconds (default: unbounded — run until stopped).",
+    )
+    p.add_argument(
+        "--sample-rate",
+        type=int,
+        default=16000,
+        dest="sample_rate",
+        help="Target sample rate in Hz (default 16000 — Whisper-native).",
+    )
+    p.add_argument(
+        "--frame-ms",
+        type=int,
+        default=20,
+        dest="frame_ms",
+        help="Frame duration in ms (default 20 — Silero-VAD native).",
+    )
+    p.add_argument(
+        "--mono", action="store_true", default=True, help="Downmix to mono (default true)."
+    )
+    p.add_argument(
+        "--no-mono", dest="mono", action="store_false", help="Preserve source channel count."
+    )
+    p.set_defaults(func=_handle_stream_mic)
+
+
 def _add_scene_auto(sub: argparse._SubParsersAction) -> None:
     """Register the ``scene-auto`` subparser.
 
@@ -664,6 +800,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_input_args(subparsers)
     _add_capture_camera(subparsers)
     _add_capture_mic(subparsers)
+    _add_stream_mic(subparsers)
     # Scene configurator subcommands — the save/load/replay artifact surface.
     _add_scene_auto(subparsers)
     _add_scene_validate(subparsers)

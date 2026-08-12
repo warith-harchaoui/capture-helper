@@ -48,6 +48,7 @@ def test_argparse_parser_builds_without_error():
         "input-args",
         "capture-camera",
         "capture-mic",
+        "stream-mic",
         "scene-auto",
         "scene-validate",
         "scene-show",
@@ -74,6 +75,7 @@ def test_argparse_help_exits_zero(capsys):
         "input-args",
         "capture-camera",
         "capture-mic",
+        "stream-mic",
         "scene-auto",
         "scene-validate",
         "scene-show",
@@ -119,6 +121,7 @@ def test_click_group_has_expected_subcommands():
         "input-args",
         "capture-camera",
         "capture-mic",
+        "stream-mic",
         "scene-auto",
         "scene-validate",
         "scene-show",
@@ -144,6 +147,7 @@ def test_click_help_exits_zero():
         "input-args",
         "capture-camera",
         "capture-mic",
+        "stream-mic",
         "scene-auto",
         "scene-validate",
         "scene-show",
@@ -167,6 +171,57 @@ def test_click_list_sources_runs_and_emits_json():
     assert result.exit_code == 0
     parsed = json.loads(result.output)
     assert isinstance(parsed, list)
+
+
+# ---------------------------------------------------------------------------
+# stream-mic — no real device: monkeypatch iter_mic_audio with a fake
+# async generator and assert the raw PCM bytes on stdout match exactly.
+# ---------------------------------------------------------------------------
+
+
+def _fake_frames(pcm_arrays):
+    """Build an async generator mimicking ``iter_mic_audio``'s frame shape."""
+
+    async def _gen(*_args, **_kwargs):
+        t = 0.0
+        for pcm in pcm_arrays:
+            yield {"t_abs_s": t, "pcm": pcm, "voiced": None}
+            t += 0.02
+
+    return _gen
+
+
+def test_argparse_stream_mic_writes_raw_pcm_to_stdout(monkeypatch, capsysbinary):
+    """``stream-mic`` must write exactly the concatenated raw f32le bytes,
+    with no WAV header and no text interleaved on stdout."""
+    import numpy as np
+
+    from capture_helper import cli_argparse
+
+    frames = [np.array([0.1, -0.2, 0.3], dtype=np.float32), np.array([0.4, 0.5], dtype=np.float32)]
+    monkeypatch.setattr(cli_argparse, "iter_mic_audio", _fake_frames(frames))
+    monkeypatch.setattr(
+        cli_argparse, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0}
+    )
+
+    rc = cli_argparse.main(["stream-mic", "--seconds", "1"])
+    assert rc == 0
+    out = capsysbinary.readouterr().out
+    expected = np.concatenate(frames).astype(np.float32).tobytes()
+    assert out == expected
+
+
+def test_argparse_stream_mic_no_frames_exits_2(monkeypatch, capsysbinary):
+    """No captured audio (e.g. permission denial) must exit 2, not crash."""
+    from capture_helper import cli_argparse
+
+    monkeypatch.setattr(cli_argparse, "iter_mic_audio", _fake_frames([]))
+    monkeypatch.setattr(
+        cli_argparse, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0}
+    )
+
+    rc = cli_argparse.main(["stream-mic", "--seconds", "1"])
+    assert rc == 2
 
 
 # ---------------------------------------------------------------------------

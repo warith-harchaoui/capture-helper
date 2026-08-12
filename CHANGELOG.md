@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-12
+
+### Added
+
+- **`stream-mic` subcommand** (argparse + click, mirrored): streams live raw
+  `f32le` PCM from the microphone to stdout, unbounded by default, with no
+  WAV header and nothing buffered in memory — the same convention ffmpeg
+  itself uses for `-f f32le -`. `capture-mic` records a fixed duration to a
+  WAV file; `stream-mic` is the live primitive for an external process
+  (a native/Rust live pipeline, another language) to spawn as a subprocess
+  and read from directly, the same way it would spawn ffmpeg. Exits cleanly
+  (0) on Ctrl-C or when the consumer closes the pipe (`BrokenPipeError`);
+  exits 2 if no audio was captured at all (e.g. permission denial).
+
 ## [1.1.1] - 2026-08-09
 
 ### Fixed

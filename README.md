@@ -141,6 +141,7 @@ For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview
 capture-helper list-sources
 capture-helper pick-source --kind camera --name FaceTime
 capture-helper capture-mic --output mic.wav --seconds 3
+capture-helper stream-mic | my-live-consumer   # raw f32le PCM, unbounded
 
 # CLI (click twin, same subcommands)
 capture-helper-click list-sources

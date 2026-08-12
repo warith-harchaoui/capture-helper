@@ -18,6 +18,7 @@ transcribe, or broadcast out.
 | Print ffmpeg input argv | `capture-helper input-args` | `ffmpeg_input_args` | `GET /input-args` |
 | Live camera → BGR frames | `capture-helper capture-camera` | `iter_camera_frames` | `GET /capture/camera` |
 | Live mic → WAV / PCM | `capture-helper capture-mic` | `iter_mic_audio` | `GET /capture/mic` |
+| Live mic → raw PCM on stdout (unbounded) | `capture-helper stream-mic` | `iter_mic_audio` | n/a — spawn the CLI as a subprocess |
 | Camera snapshot (JPEG) | n/a | `snapshot_jpeg` | `GET /preview/camera.jpg` |
 | Camera live stream (MJPEG) | n/a | `iter_camera_jpeg` | `GET /preview/camera.mjpeg` |
 | Microphone level meter | n/a | `mic_level` | `GET /preview/mic-level` |
@@ -38,7 +39,9 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 - **Live camera**: "stream webcam frames to numpy / OpenCV / my model", "grab N
   frames from the camera", "feed the live camera into my vision model".
 - **Live mic**: "stream mic PCM to my ASR / VAD", "record 5 seconds of the
-  microphone to a WAV", "live mic frames like extract_audio_stream".
+  microphone to a WAV", "live mic frames like extract_audio_stream", "pipe
+  raw mic PCM to another process / a native app", "spawn capture-helper as a
+  live audio subprocess".
 - **Preview**: "show a live camera preview / MJPEG", "snapshot the webcam to a
   JPEG", "live mic level / VU meter".
 - **Scene**: "design a multi-camera scene / layout", "compose several sources on
@@ -66,7 +69,7 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 
 - Commands: `capture-helper`, `capture-helper-click`.
 - Subcommands: `list-sources pick-source input-args capture-camera capture-mic
-  scene-auto scene-validate scene-show`.
+  stream-mic scene-auto scene-validate scene-show`.
 - Functions: `list_sources pick_source ffmpeg_input_args iter_camera_frames
   iter_mic_audio MicFrame Source new_scene add_source save_scene load_scene
   validate_scene resolve_scene_sources scene_from_available_devices

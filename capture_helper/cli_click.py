@@ -287,6 +287,101 @@ def capture_mic_cmd(
 
 
 # ---------------------------------------------------------------------------
+# stream-mic
+# ---------------------------------------------------------------------------
+
+
+async def _stream_mic_to_stdout_async(
+    src: dict,
+    *,
+    target_sample_rate: int,
+    to_mono: bool,
+    frame_ms: int,
+    max_frames: int | None,
+) -> int:
+    """Same helper as the argparse twin — pipe live PCM straight to stdout.
+
+    No WAV header, nothing buffered: raw f32le bytes as each frame
+    arrives, flushed immediately, matching ffmpeg's own ``-f f32le -``
+    convention used everywhere else in this codebase.
+    """
+    out = sys.stdout.buffer
+    yielded = 0
+    try:
+        async for frame in iter_mic_audio(
+            src,
+            target_sample_rate=target_sample_rate,
+            to_mono=to_mono,
+            frame_ms=frame_ms,
+            max_frames=max_frames,
+        ):
+            pcm = np.ascontiguousarray(frame["pcm"], dtype=np.float32)
+            out.write(pcm.tobytes())
+            out.flush()
+            yielded += 1
+    except BrokenPipeError:
+        return 0
+    if yielded == 0:
+        click.echo("capture-helper: no audio captured (permission denied?)", err=True)
+        return 2
+    return 0
+
+
+@cli.command("stream-mic")
+@click.option("--name", default=None, help="Case-insensitive substring on the device name.")
+@click.option("--index", type=int, default=None, help="Exact index match.")
+@click.option(
+    "--seconds",
+    type=float,
+    default=None,
+    help="Stop after this many seconds (default: unbounded — run until stopped).",
+)
+@click.option(
+    "--sample-rate", type=int, default=16000, show_default=True, help="Target sample rate in Hz."
+)
+@click.option("--frame-ms", type=int, default=20, show_default=True, help="Frame duration in ms.")
+@click.option(
+    "--mono/--no-mono",
+    default=True,
+    show_default=True,
+    help="Downmix to mono or preserve source channels.",
+)
+def stream_mic_cmd(
+    name: str | None,
+    index: int | None,
+    seconds: float | None,
+    sample_rate: int,
+    frame_ms: int,
+    mono: bool,
+) -> None:
+    """Stream live microphone PCM (raw f32le) to stdout, unbounded by default.
+
+    The primitive an external live pipeline (Rust core, another language)
+    spawns as a subprocess and reads from, the same way it would spawn
+    ffmpeg directly.
+    """
+    max_frames: int | None = None
+    if seconds is not None:
+        frames_per_sec = max(1, 1000 // frame_ms)
+        max_frames = int(seconds * frames_per_sec)
+    src = pick_source("microphone", name_substring=name, index=index)
+    try:
+        rc = asyncio.run(
+            _stream_mic_to_stdout_async(
+                src,
+                target_sample_rate=sample_rate,
+                to_mono=mono,
+                frame_ms=frame_ms,
+                max_frames=max_frames,
+            )
+        )
+    except KeyboardInterrupt:
+        rc = 0
+    if rc != 0:
+        sys.exit(rc)
+
+
+# ---------------------------------------------------------------------------
 # Scene configurator subcommands — mirror the argparse twin's names / flags.
 # ---------------------------------------------------------------------------
 
