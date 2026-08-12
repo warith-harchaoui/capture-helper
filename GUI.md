@@ -1,7 +1,7 @@
-# GUI — Capture Helper
+# Capture Helper GUI
 
 The **live multi-source scene configurator** served by the FastAPI app at
-`GET /gui`. It is a real, shipped feature (v0.3.0) — a single self-contained
+`GET /gui`. It is a real, shipped feature (v0.3.0): a single self-contained
 HTML page (vanilla JS + Tailwind via CDN, no build step) defined in
 `capture_helper/gui.py`. Opening `http://localhost:8000/` redirects to it.
 
@@ -19,7 +19,7 @@ uvicorn capture_helper.api:app --port 8000
    16:9 canvas (the first camera fills it); microphones attach as level meters
    under the canvas.
 3. **Live preview.** Each camera tile shows a **live MJPEG stream** from
-   `GET /preview/camera.mjpeg`, rendered directly in an `<img>` — no client-side
+   `GET /preview/camera.mjpeg`, rendered directly in an `<img>`, with no client-side
    decoding. Each microphone shows a **live level meter** polled from
    `GET /preview/mic-level` (green / amber / red by dBFS). When a device has no
    live feed (headless server, permission denied), the tile degrades to a
@@ -40,7 +40,7 @@ The saved `.scene.json` is exactly a `capture_helper.scene.Scene`: a named
 canvas plus an ordered list of placed sources, each recording *how to re-select
 the device* (kind + name substring + index), *where it sits* (x / y / w / h / z),
 and *its capture parameters* (fps / output size / sample rate / …). It is a
-portable, diffable recipe — not a live handle — so the visual design becomes a
+portable, diffable recipe, not a live handle, so the visual design becomes a
 headless, scriptable capture pipeline the CLI and library can replay:
 
 ```bash
@@ -60,7 +60,7 @@ for r in ch.resolve_scene_sources(scene):
 - **No build step, no framework.** One HTML string, Tailwind from a CDN, a
   single inline ES module. Reduced-motion guard, focus rings, semantic markup.
 - **The GUI adds no server logic.** Every action hits the same HTTP endpoints
-  the CLI surface uses — it is purely a friendlier front door.
+  the CLI surface uses; it is purely a friendlier front door.
 - **Local-first.** Every preview stream and every saved scene stays on the
   machine. No upload, no telemetry, no account.
 

@@ -1,7 +1,7 @@
 # Capture Helper Examples
 
-Practical recipes for `capture-helper` v0.1.0 — **cross-platform device
-enumeration + selection + live iterators** for cameras and microphones.
+Practical recipes for `capture-helper` v0.1.0: **cross-platform device
+enumeration, selection, and live iterators** for cameras and microphones.
 
 Every snippet assumes:
 
@@ -10,8 +10,8 @@ import asyncio
 import capture_helper as ch
 ```
 
-and that `ffmpeg` is on PATH (`brew install ffmpeg` on macOS — install
-`brew` thanks to [brew.sh](https://brew.sh/); `sudo apt install ffmpeg`
+and that `ffmpeg` is on PATH (`brew install ffmpeg` on macOS, after
+installing `brew` from [brew.sh](https://brew.sh/); `sudo apt install ffmpeg`
 on Linux; a Windows build added to `PATH`).
 
 ---
@@ -30,7 +30,7 @@ on Linux; a Windows build added to `PATH`).
 10. [Design, save & replay a scene](#design-save--replay-a-scene)
 11. [Live preview (JPEG / MJPEG / mic level)](#live-preview-jpeg--mjpeg--mic-level)
 12. [The browser scene configurator (`/gui`)](#the-browser-scene-configurator-gui)
-13. [Roadmap — what each version unlocks](#roadmap--what-each-version-unlocks)
+13. [Roadmap: what each version unlocks](#roadmap-what-each-version-unlocks)
 
 ---
 
@@ -43,7 +43,7 @@ pip install --force-reinstall --no-cache-dir \
 
 The `list_sources` call shells out to `ffmpeg -list_devices` and parses
 the stderr. If `ffmpeg` is missing, the call returns `[]` rather than
-raising — handy for "is this machine capture-ready?" probes.
+raising, which is handy for "is this machine capture-ready?" probes.
 
 ## List all available sources
 
@@ -110,7 +110,7 @@ ch.pick_source("microphone", name_substring="USB")
 
 ## Camera → numpy BGR frames
 
-`iter_camera_frames` yields `(H, W, 3)` BGR uint8 numpy arrays — **same
+`iter_camera_frames` yields `(H, W, 3)` BGR uint8 numpy arrays: **the same
 shape and dtype as [`video_helper.extract_frames`](https://github.com/warith-harchaoui/video-helper)**.
 Consumers built for the file-based path plug in unchanged.
 
@@ -126,7 +126,7 @@ for frame in ch.iter_camera_frames(cam, width=1280, height=720, fps=30):
         break
 cv2.destroyAllWindows()
 
-# 224x224 letterboxed (aspect-preserving + black pad) — common ML input shape.
+# 224x224 letterboxed (aspect-preserving + black pad), a common ML input shape.
 for frame in ch.iter_camera_frames(cam, output_width=224, output_height=224,
                                    max_frames=10):
     # frame.shape == (224, 224, 3), dtype uint8, BGR.
@@ -137,11 +137,11 @@ for frame in ch.iter_camera_frames(cam, output_width=224, output_height=224,
 `iter_camera_frames` requires at least one of the resolution pairs
 (``(width, height)`` for the capture side or ``(output_width,
 output_height)`` for the post-decode side) so the raw byte stream can
-be reshaped — set both for full control.
+be reshaped; set both for full control.
 
 ## Microphone → async PCM stream
 
-`iter_mic_audio` yields `MicFrame` typed dicts — **same shape as
+`iter_mic_audio` yields `MicFrame` typed dicts: **the same shape as
 [`podcast_helper.extract_audio_stream`](https://github.com/warith-harchaoui/podcast-helper)**.
 The PCM is float32 in `[-1.0, 1.0]`, resampled to `target_sample_rate`
 via ffmpeg's libswresample (anti-aliasing low-pass at the new Nyquist).
@@ -155,7 +155,7 @@ async def listen():
                                      frame_ms=20):
         # f["pcm"].shape == (320,) for 20ms @ 16kHz mono.
         # f["t_abs_s"] is monotonic from the moment ffmpeg latched on.
-        # f["voiced"] is None — VAD downstream fills it in if used.
+        # f["voiced"] is None; VAD downstream fills it in if used.
         print(f["pcm"].shape, f["t_abs_s"])
         # (320,) 0.0
         # (320,) 0.02
@@ -207,7 +207,7 @@ async def transcribe(frames_async_iter):
 # URL-driven
 asyncio.run(transcribe(ph.extract_audio_stream("https://feeds.npr.org/510289/podcast.xml")))
 
-# Mic-driven — same downstream code
+# Mic-driven, same downstream code
 mic = ch.pick_source("microphone")
 asyncio.run(transcribe(ch.iter_mic_audio(mic, target_sample_rate=16000)))
 ```
@@ -233,8 +233,8 @@ print("Saved snapshot.png from", cam["name"])
 # Saved snapshot.png from FaceTime HD Camera
 ```
 
-`ffmpeg_input_args` raises `ValueError` for unknown drivers — useful as
-a sanity check before spawning ffmpeg.
+`ffmpeg_input_args` raises `ValueError` for unknown drivers, which is
+useful as a sanity check before spawning ffmpeg.
 
 ## Inspect a `Source` typed dict
 
@@ -252,7 +252,7 @@ for s in sources:
 ```
 
 The `driver` field tells you the ffmpeg input format flag downstream
-code will use — `-f avfoundation` / `-f v4l2` / `-f dshow` / `-f pulse` /
+code will use: `-f avfoundation` / `-f v4l2` / `-f dshow` / `-f pulse` /
 `-f alsa`.
 
 ## Design, save & replay a scene
@@ -341,12 +341,12 @@ uvicorn capture_helper.api:app --port 8000
 
 Enumerate your cameras / microphones, click to drop them on the canvas,
 live-preview each camera (MJPEG) and each mic (level meter), drag to arrange,
-then **Save scene (JSON)** — the downloaded `.scene.json` is exactly what
+then **Save scene (JSON)**: the downloaded `.scene.json` is exactly what
 `capture-helper scene-validate` / `scene-show` and `ch.load_scene(...)` consume.
 See [GUI.md](GUI.md) for the full walkthrough. Everything is local: no upload,
 no telemetry.
 
-## Roadmap — what each version unlocks
+## Roadmap: what each version unlocks
 
 | Version | Layer | New capability |
 |---|---|---|

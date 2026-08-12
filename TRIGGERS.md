@@ -1,11 +1,11 @@
-# TRIGGERS — capture-helper
+# TRIGGERS: capture-helper
 
 This is the user-facing, exhaustive catalogue of what `capture-helper` can do and
 the natural-language phrasings, commands, functions, and situations that should
 invoke it.
 
 `capture-helper` reads **live cameras and microphones** and lets you design
-reusable multi-source **scenes**. It is local-first and ffmpeg-backed — camera
+reusable multi-source **scenes**. It is local-first and ffmpeg-backed: camera
 and microphone data never leave the machine. It does **not** read files/URLs,
 transcribe, or broadcast out.
 
@@ -18,12 +18,12 @@ transcribe, or broadcast out.
 | Print ffmpeg input argv | `capture-helper input-args` | `ffmpeg_input_args` | `GET /input-args` |
 | Live camera → BGR frames | `capture-helper capture-camera` | `iter_camera_frames` | `GET /capture/camera` |
 | Live mic → WAV / PCM | `capture-helper capture-mic` | `iter_mic_audio` | `GET /capture/mic` |
-| Camera snapshot (JPEG) | — | `snapshot_jpeg` | `GET /preview/camera.jpg` |
-| Camera live stream (MJPEG) | — | `iter_camera_jpeg` | `GET /preview/camera.mjpeg` |
-| Microphone level meter | — | `mic_level` | `GET /preview/mic-level` |
+| Camera snapshot (JPEG) | n/a | `snapshot_jpeg` | `GET /preview/camera.jpg` |
+| Camera live stream (MJPEG) | n/a | `iter_camera_jpeg` | `GET /preview/camera.mjpeg` |
+| Microphone level meter | n/a | `mic_level` | `GET /preview/mic-level` |
 | Auto scene from devices | `capture-helper scene-auto` | `scene_from_available_devices` | `GET /scene` |
 | Validate a scene file | `capture-helper scene-validate` | `validate_scene` | `POST /scene/save` (validates) |
-| Resolve a scene here | `capture-helper scene-show` | `resolve_scene_sources` | — |
+| Resolve a scene here | `capture-helper scene-show` | `resolve_scene_sources` | n/a |
 | Save / load a scene | (`scene-auto --output`) | `save_scene` / `load_scene` | `POST /scene/save` · `POST /scene/load` |
 
 Everything is also reachable through the click CLI (`capture-helper-click …`,
