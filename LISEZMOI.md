@@ -102,12 +102,13 @@ pip install "capture-helper[api]"       # surface HTTP FastAPI
 ### Depuis les sources (sans PyPI)
 
 ```bash
-# Couche INPUT de base
-pip install capture-helper
+git clone https://github.com/warith-harchaoui/capture-helper.git
+cd capture-helper
+pip install -e .
 
 # Surfaces optionnelles
-pip install "capture-helper[cli]"
-pip install "capture-helper[api]"
+pip install -e ".[cli]"
+pip install -e ".[api]"
 ```
 
 ## Feuille de route
