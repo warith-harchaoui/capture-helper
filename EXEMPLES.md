@@ -220,6 +220,29 @@ mic = ch.pick_source("microphone")
 asyncio.run(transcribe(ch.iter_mic_audio(mic, target_sample_rate=16000)))
 ```
 
+La même composabilité fonctionne côté vidéo. `video_helper.iter_optical_flow`
+accepte n'importe quel itérateur de frames `(H, W, 3)` BGR uint8 — peu importe
+que les frames viennent d'un fichier (`video_helper.extract_frames`) ou d'une
+caméra live (`ch.iter_camera_frames`), puisque les deux partagent exactement
+le même contrat. Flux optique dense en direct, sans code de liaison, sans
+nouvelle dépendance côté capture-helper (qui reste ffmpeg + numpy uniquement —
+c'est `video_helper[flow]` qui apporte opencv/torch, entièrement côté
+video-helper) :
+
+```python
+import capture_helper as ch
+import video_helper as vh
+
+cam = ch.pick_source("camera")
+frames = ch.iter_camera_frames(cam, width=1280, height=720, fps=30)
+
+# Même appel que vh.iter_optical_flow(vh.extract_frames("clip.mp4"), method="dis")
+# — seule la source de frames a changé, d'un fichier vers une caméra live.
+for flow_frame in vh.iter_optical_flow(frames, method="dis"):
+    bgr = flow_frame[..., :3].astype("uint8")        # retour à une frame classique
+    vx, vy = flow_frame[..., 3], flow_frame[..., 4]  # mouvement par pixel en direct
+```
+
 ## Construire soi-même la chaîne d'entrée ffmpeg par OS
 
 Pour les utilisateurs qui câblent leur propre pipeline ffmpeg, le

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Docs
+
+- `EXAMPLES.md` / `EXEMPLES.md`: added a video-side composability example to
+  "Compose with video-helper / podcast-helper contracts" — piping
+  `ch.iter_camera_frames(...)` straight into `video_helper.iter_optical_flow(...)`
+  for live dense optical flow, no glue code, no new dependency on this side.
+
 ## [1.2.0] - 2026-08-12
 
 ### Added
