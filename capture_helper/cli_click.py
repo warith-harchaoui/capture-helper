@@ -15,8 +15,11 @@ Design notes
 - Flags reuse the argparse names (``--kind`` / ``--name`` / …) rather
   than the more idiomatic click positional style — consistency across
   the two CLIs beats micro-idiomaticity here.
-- Errors from the library propagate unchanged; click handles the
-  formatting.
+- A library exception (e.g. ``pick_source``'s ``ValueError`` when no
+  device matches) is caught by the ``main()`` entry point and printed as
+  one clean ``Error: ...`` line + exit 1 — click's own error handling
+  only covers its own ``ClickException``/usage errors, not arbitrary
+  exceptions raised inside a command body.
 
 Usage Example
 -------------
@@ -437,5 +440,24 @@ def scene_show_cmd(input_: str) -> None:
     click.echo(json.dumps(report, indent=2))
 
 
+def main() -> None:
+    """Console entry point (``capture-helper-click``).
+
+    Click's own error handling only special-cases ``ClickException``/
+    ``Abort`` (and a broken pipe) — a plain library exception (e.g. from
+    ``pick_source``) would otherwise propagate as a raw Python traceback
+    instead of a clean CLI error. This wraps the whole invocation and
+    translates that last case into a one-line stderr message + exit 1;
+    click's own control flow (usage errors, ``--help``, an explicit
+    ``sys.exit(1)`` in a subcommand) already raises ``SystemExit``, a
+    ``BaseException`` this does not catch, so it passes through untouched.
+    """
+    try:
+        cli()
+    except Exception as err:  # noqa: BLE001 — last resort: see docstring
+        click.echo(f"Error: {err}", err=True)
+        sys.exit(1)
+
+
 if __name__ == "__main__":  # pragma: no cover
-    cli()
+    main()

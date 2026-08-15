@@ -18,6 +18,7 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 from __future__ import annotations
 
 import json
+import sys
 
 import pytest
 
@@ -106,6 +107,27 @@ def test_argparse_list_sources_runs_and_emits_json(capsys):
     assert isinstance(parsed, list)
 
 
+def test_argparse_library_error_prints_clean_message_not_traceback(monkeypatch, capsys):
+    """A library ``ValueError`` must exit 1 with one clean line, not a raw traceback.
+
+    ``main()``'s dispatch used to call ``args.func(args)`` unguarded, so
+    ``pick_source``'s documented ``ValueError`` (no device matches) would
+    propagate as a full Python traceback instead of a clean CLI error.
+    """
+    from capture_helper import cli_argparse
+
+    def _raise(*_a, **_kw):
+        raise ValueError("No camera devices available")
+
+    monkeypatch.setattr(cli_argparse, "pick_source", _raise)
+    rc = cli_argparse.main(["pick-source", "--kind", "camera"])
+    assert rc == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err.strip() == "Error: No camera devices available"
+    assert "Traceback" not in captured.err
+
+
 # ---------------------------------------------------------------------------
 # click CLI
 # ---------------------------------------------------------------------------
@@ -171,6 +193,29 @@ def test_click_list_sources_runs_and_emits_json():
     assert result.exit_code == 0
     parsed = json.loads(result.output)
     assert isinstance(parsed, list)
+
+
+def test_click_main_library_error_prints_clean_message_not_traceback(monkeypatch, capsys):
+    """``main()`` (the ``capture-helper-click`` console-script target) must
+    turn a library ``ValueError`` into one clean stderr line + exit 1, not a
+    raw traceback. Exercises ``main()`` itself (not ``cli`` via
+    ``CliRunner``), since that's the wrapper the fix lives in — the
+    ``capture-helper-click`` entry point used to point at the bare ``cli``
+    group, which has no such handling of its own.
+    """
+    from capture_helper import cli_click
+
+    def _raise(*_a, **_kw):
+        raise ValueError("No camera devices available")
+
+    monkeypatch.setattr(cli_click, "pick_source", _raise)
+    monkeypatch.setattr(sys, "argv", ["capture-helper-click", "pick-source", "--kind", "camera"])
+    with pytest.raises(SystemExit) as excinfo:
+        cli_click.main()
+    assert excinfo.value.code == 1
+    captured = capsys.readouterr()
+    assert captured.err.strip() == "Error: No camera devices available"
+    assert "Traceback" not in captured.err
 
 
 # ---------------------------------------------------------------------------

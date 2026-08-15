@@ -827,7 +827,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     # Every subparser sets ``func`` via ``set_defaults`` — no dispatch
     # table needed, argparse resolved it for us.
-    return int(args.func(args))
+    #
+    # ``parser.parse_args`` above already handles its OWN errors (bad flags,
+    # missing required args) with a clean usage message + exit 2 — argparse
+    # does NOT do the same for an exception raised inside the handler itself
+    # (e.g. pick_source's ValueError when no device matches), which would
+    # otherwise propagate as a raw Python traceback instead of a clean
+    # command-line error.
+    try:
+        return int(args.func(args))
+    except Exception as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":  # pragma: no cover

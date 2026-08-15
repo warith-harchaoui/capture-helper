@@ -10,6 +10,7 @@ exist with the right shape.
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Iterator
 
 import pytest
@@ -244,4 +245,69 @@ async def test_iter_mic_audio_rejects_camera_source() -> None:
     }
     with pytest.raises(ValueError, match="microphone source"):
         async for _ in ch.iter_mic_audio(cam_src):
+            pass
+
+
+class _FakeFailedStdout:
+    """Mimics ffmpeg exiting immediately: the very first read gets nothing."""
+
+    async def readexactly(self, n: int) -> bytes:
+        raise asyncio.IncompleteReadError(partial=b"", expected=n)
+
+
+class _FakeStderr:
+    def __init__(self, message: bytes) -> None:
+        self._message = message
+
+    async def read(self) -> bytes:
+        # A real pipe returns b"" on every read once drained -- only the
+        # first call should see the message.
+        msg, self._message = self._message, b""
+        return msg
+
+
+class _FakeFailedProc:
+    """Mimics an ffmpeg process that exits (permission/device error) before
+    producing a single frame -- no real subprocess involved."""
+
+    def __init__(self) -> None:
+        self.stdout = _FakeFailedStdout()
+        self.stderr = _FakeStderr(b"Input/output error: mic permission denied")
+        self.returncode: int | None = 1
+
+    async def wait(self) -> int:
+        return self.returncode
+
+    def terminate(self) -> None:
+        pass
+
+    def kill(self) -> None:
+        pass
+
+
+@pytest.mark.asyncio
+async def test_iter_mic_audio_raises_when_ffmpeg_exits_with_zero_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A stalled/denied device used to look identical to "recorded nothing
+    # yet, stream just ended" -- an empty async generator, no exception --
+    # instead of surfacing the real cause. Must now raise RuntimeError with
+    # ffmpeg's stderr, the same contract iter_camera_frames already has.
+    mic_src: ch.Source = {
+        "kind": "microphone",
+        "name": "x",
+        "index": 0,
+        "platform": "darwin",
+        "driver": "avfoundation",
+    }
+
+    async def _fake_create_subprocess_exec(*_a: object, **_kw: object) -> _FakeFailedProc:
+        return _FakeFailedProc()
+
+    monkeypatch.setattr(
+        "capture_helper.mic.asyncio.create_subprocess_exec", _fake_create_subprocess_exec
+    )
+
+    with pytest.raises(RuntimeError, match="permission denied"):
+        async for _ in ch.iter_mic_audio(mic_src):
             pass

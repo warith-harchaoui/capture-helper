@@ -73,7 +73,7 @@ dev = [
 # argparse-based CLI — no runtime dep beyond stdlib + core package.
 capture-helper = "capture_helper.cli_argparse:main"
 # click-based twin — install with [cli] extra.
-capture-helper-click = "capture_helper.cli_click:cli"
+capture-helper-click = "capture_helper.cli_click:main"
 # MCP server — install with [mcp] extra.
 capture-helper-mcp = "capture_helper.mcp:main"
 

@@ -254,6 +254,21 @@ async def iter_mic_audio(
                 if exc.partial:
                     pad = bytes_per_frame - len(exc.partial)
                     raw = exc.partial + (b"\x00" * pad)
+                elif yielded == 0:
+                    # ffmpeg exited before a single frame was produced.
+                    # Silently returning an empty stream here would look
+                    # identical to "the mic recorded nothing yet" to a
+                    # caller, hiding the real cause (permission denied,
+                    # device busy) — surface it the same way
+                    # iter_camera_frames does for the analogous case.
+                    await proc.wait()
+                    stderr_bytes = await proc.stderr.read()
+                    err = stderr_bytes.decode("utf-8", errors="replace").strip()
+                    raise RuntimeError(
+                        "ffmpeg exited before yielding a frame — common causes: "
+                        "OS microphone permission denied, device busy in another "
+                        "app, or unsupported capture mode. ffmpeg stderr: " + (err or "(empty)")
+                    ) from exc
                 else:
                     break
 
