@@ -212,7 +212,7 @@ mic = ch.pick_source("microphone")
 asyncio.run(transcribe(ch.iter_mic_audio(mic, target_sample_rate=16000)))
 ```
 
-The same composability works on the video side. `video_helper.iter_optical_flow`
+The same composability works on the video side. `video_helper.iter_frame_optical_flow`
 takes any `(H, W, 3)` BGR uint8 frame iterator — it does not care whether the
 frames came from a file (`video_helper.extract_frames`) or a live camera
 (`ch.iter_camera_frames`), since both already share that exact contract. Live
@@ -227,9 +227,9 @@ import video_helper as vh
 cam = ch.pick_source("camera")
 frames = ch.iter_camera_frames(cam, width=1280, height=720, fps=30)
 
-# Same call as vh.iter_optical_flow(vh.extract_frames("clip.mp4"), method="dis")
+# Same call as vh.iter_frame_optical_flow(vh.extract_frames("clip.mp4"), method="dis")
 # — only the frame source changed, from a file to a live camera.
-for flow_frame in vh.iter_optical_flow(frames, method="dis"):
+for flow_frame in vh.iter_frame_optical_flow(frames, method="dis"):
     bgr = flow_frame[..., :3].astype("uint8")        # back to a plain frame
     vx, vy = flow_frame[..., 3], flow_frame[..., 4]   # live per-pixel motion
 ```
