@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+
+- `EXAMPLES.md` / `EXEMPLES.md`: added a video-side composability example to
+  "Compose with video-helper / podcast-helper contracts" — piping
+  `ch.iter_camera_frames(...)` straight into `video_helper.iter_frame_optical_flow(...)`
+  for live dense optical flow, no glue code, no new dependency on this side.
+
+## [1.2.1] - 2026-08-15
+
 ### Fixed
 
 - **`iter_mic_audio` silently returned an empty stream when ffmpeg exited
@@ -20,13 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Both `capture-helper` and `capture-helper-click` now print `Error: ...` to
   stderr and exit 1. `capture-helper-click`'s console-script entry point now
   points at a new `cli_click.main()` wrapper (was the bare `cli` group).
-
-### Docs
-
-- `EXAMPLES.md` / `EXEMPLES.md`: added a video-side composability example to
-  "Compose with video-helper / podcast-helper contracts" — piping
-  `ch.iter_camera_frames(...)` straight into `video_helper.iter_frame_optical_flow(...)`
-  for live dense optical flow, no glue code, no new dependency on this side.
 
 ## [1.2.0] - 2026-08-12
 
