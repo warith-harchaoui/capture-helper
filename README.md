@@ -6,7 +6,7 @@
 
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
-Local-first, **library-shaped camera / microphone capture layer** for the AI Helpers stack, with a **live multi-source scene configurator** GUI. It turns your live cameras and microphones into the same array / PCM contracts the rest of the suite consumes: `iter_camera_frames` yields `(H, W, 3)` BGR uint8 arrays like [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames`, and `iter_mic_audio` yields `MicFrame`s like [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream`. On top of that, it lets you compose several live sources on a canvas, preview them in the browser, and save the design as a reusable JSON scene the CLI / API can replay. The capture iterators are the stable contract; the scene configurator, added more recently, rounds out the toolkit.
+Local-first library that turns a live camera or microphone into data the rest of the AI Helpers suite already knows how to consume, plus a browser GUI for arranging several such sources at once. A camera feed becomes a stream of ordinary images: `iter_camera_frames` yields one array per frame, a grid of pixel colors with a height, a width, and three color channels stored blue, then green, then red (the format OpenCV and the rest of this suite use, called BGR uint8), matching [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames`. A microphone feed becomes a stream of sound samples: `iter_mic_audio` yields `MicFrame`s, small chunks of raw audio measurements taken over time (pulse-code modulation, or PCM), matching [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream`. Because both iterators speak the same shapes as their sibling packages, code written against a recorded video file or a downloaded podcast runs unchanged against a live camera or microphone. On top of that, the GUI lets you drag several live sources onto a canvas, preview them in the browser, and save the layout as a reusable JSON scene the CLI or API can replay later. The two iterators are the stable foundation; the scene configurator, added more recently, builds on top of them.
 
 [🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
 
@@ -47,7 +47,7 @@ Here is exactly what exists today.
 - **Scene CLI**: `capture-helper scene-auto` (auto-populate from devices), `scene-validate`, `scene-show` (reports how each source resolves here).
 - **Scene / preview HTTP endpoints**: `GET /scene`, `POST /scene/save`, `POST /scene/load`, `GET /preview/camera.jpg`, `GET /preview/camera.mjpeg`, `GET /preview/mic-level`.
 
-The scene configurator is a live multi-source scene configurator in the fullest sense: a visual layout of live cameras and microphones that serialises to a portable artifact, so the design itself becomes a headless, scriptable capture recipe.
+What makes this more than a live-preview widget is that the layout itself becomes data: arranging cameras and microphones on the canvas produces a portable JSON file, so the same scene can be replayed later, on a different machine, from the command line, with no browser involved.
 
 ```python
 import asyncio
