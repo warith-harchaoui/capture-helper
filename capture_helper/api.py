@@ -50,6 +50,7 @@ import shutil
 import tempfile
 import wave
 import zipfile
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -146,6 +147,23 @@ def _cleanup(*paths: Path | str) -> None:
 def _new_tmpdir() -> Path:
     """Create a request-scoped temp directory under the system temp root."""
     return Path(tempfile.mkdtemp(prefix="capture-helper-"))
+
+
+@contextmanager
+def _cleanup_on_error(tmp: Path):
+    """Reclaim ``tmp`` immediately if the wrapped block raises.
+
+    Every action endpoint creates its temp dir before the risky operation
+    (capture, or writing an artifact) and only *schedules* cleanup via
+    ``background.add_task`` once that operation succeeds — so a failure in
+    between used to leak the temp dir on every failed request. This closes
+    that gap without disturbing the success-path deferred cleanup.
+    """
+    try:
+        yield
+    except Exception:
+        _cleanup(tmp)
+        raise
 
 
 def _zip_folder(folder: Path) -> io.BytesIO:
@@ -282,19 +300,20 @@ def capture_camera(
     # ``iter_camera_frames`` is a synchronous generator; we consume it
     # inline. The library already tears the ffmpeg subprocess down in
     # a ``finally`` block, so an early return here is safe.
-    for i, frame in enumerate(
-        iter_camera_frames(
-            src,
-            width=width,
-            height=height,
-            fps=fps,
-            output_width=output_width,
-            output_height=output_height,
-            pad_color=pad_color,
-            max_frames=max_frames,
-        )
-    ):
-        (frames_dir / f"frame_{i:06d}.bgr24").write_bytes(frame.tobytes())
+    with _cleanup_on_error(tmp):
+        for i, frame in enumerate(
+            iter_camera_frames(
+                src,
+                width=width,
+                height=height,
+                fps=fps,
+                output_width=output_width,
+                output_height=output_height,
+                pad_color=pad_color,
+                max_frames=max_frames,
+            )
+        ):
+            (frames_dir / f"frame_{i:06d}.bgr24").write_bytes(frame.tobytes())
 
     buf = _zip_folder(frames_dir)
     background.add_task(_cleanup, tmp)
@@ -369,16 +388,17 @@ def capture_mic(
     # ``asyncio.run`` in a sync endpoint drives the async iterator to
     # completion. FastAPI's own event loop is not involved for this
     # short blocking call.
-    asyncio.run(
-        _record_mic_to_wav(
-            src,
-            out_path,
-            target_sample_rate=sample_rate,
-            to_mono=mono,
-            frame_ms=frame_ms,
-            max_frames=max_frames,
+    with _cleanup_on_error(tmp):
+        asyncio.run(
+            _record_mic_to_wav(
+                src,
+                out_path,
+                target_sample_rate=sample_rate,
+                to_mono=mono,
+                frame_ms=frame_ms,
+                max_frames=max_frames,
+            )
         )
-    )
     background.add_task(_cleanup, tmp)
     return FileResponse(str(out_path), filename=out_path.name, media_type="audio/wav")
 
@@ -581,7 +601,8 @@ async def scene_save(background: BackgroundTasks, request: Request):
     name = str(payload.get("name") or "scene")
     out_path = tmp / f"{name}.scene.json"
     # Reuse the library save so the on-disk shape matches the CLI exactly.
-    save_scene(payload, out_path)
+    with _cleanup_on_error(tmp):
+        save_scene(payload, out_path)
     background.add_task(_cleanup, tmp)
     return FileResponse(
         str(out_path),

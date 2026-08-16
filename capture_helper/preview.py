@@ -348,14 +348,21 @@ async def mic_level(
     n_frames = max(1, window_ms // max(1, frame_ms))
     chunks: list[np.ndarray] = []
     # Pull a bounded number of frames, then let the iterator tear ffmpeg down.
-    async for frame in iter_mic_audio(
-        source,
-        target_sample_rate=target_sample_rate,
-        frame_ms=frame_ms,
-        to_mono=True,
-        max_frames=n_frames,
-    ):
-        chunks.append(frame["pcm"])
+    try:
+        async for frame in iter_mic_audio(
+            source,
+            target_sample_rate=target_sample_rate,
+            frame_ms=frame_ms,
+            to_mono=True,
+            max_frames=n_frames,
+        ):
+            chunks.append(frame["pcm"])
+    except RuntimeError:
+        # iter_mic_audio raises when it exits before a single frame (permission
+        # denied / device busy) rather than yielding an empty stream — this
+        # poller runs every ~200ms for a live VU meter, so surface that the
+        # same way as "no audio at all": silence, not an exception per poll.
+        chunks = []
 
     # No audio at all (permission denied / no device) → report silence rather
     # than raising, so the GUI meter simply stays at the floor.

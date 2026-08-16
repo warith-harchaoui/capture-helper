@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **API temp-dir leak on failure**: `capture_camera`, `capture_mic`, and
+  `scene_save` each created a request-scoped temp dir, then only scheduled
+  its cleanup after the risky operation (camera/mic capture, or
+  `save_scene`) succeeded — same bug class fixed elsewhere in the suite
+  this session (audio-helper, video-helper, bucket-helper). A client
+  repeatedly hitting a failing case (permission denied, device busy, disk
+  error) leaked a temp dir every time. Fixed with a `_cleanup_on_error`
+  context manager wrapping all three call sites; `scene_load` already did
+  this correctly.
+- **`mic_level`'s "report silence, don't raise" contract was dead code**:
+  earlier this session `iter_mic_audio` was fixed to raise `RuntimeError`
+  (instead of exiting cleanly) when it produces zero frames — but
+  `mic_level`'s own `if not chunks:` fallback, meant to keep the VU-meter
+  poll (`/preview/mic-level`) degrading to silence on a permission-denied
+  or busy mic, could no longer be reached: the exception now propagates
+  straight through, 500ing the poll instead. Fixed by having `mic_level`
+  catch that `RuntimeError` itself and return the silence reading, same as
+  before the dependency's contract changed.
+
 ### Docs
 
 - `EXAMPLES.md` / `EXEMPLES.md`: added a video-side composability example to

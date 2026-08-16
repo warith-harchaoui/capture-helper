@@ -22,6 +22,7 @@ import numpy as np
 import pytest
 
 import capture_helper as ch
+from capture_helper.preview import mic_level
 
 # ffmpeg is required for the JPEG encode path; skip cleanly if absent.
 _HAS_FFMPEG = shutil.which("ffmpeg") is not None
@@ -69,3 +70,24 @@ def test_rms_dbfs_half_scale():
     lin, db = ch.rms_dbfs(np.full(1000, 0.5, dtype=np.float32))
     assert lin == pytest.approx(0.5, abs=1e-6)
     assert db == pytest.approx(-6.02, abs=0.1)
+
+
+@pytest.mark.asyncio
+async def test_mic_level_reports_silence_instead_of_raising_on_permission_denied(monkeypatch):
+    """A permission-denied/busy mic must degrade to silence, not raise.
+
+    ``iter_mic_audio`` raises ``RuntimeError`` when it exits before a single
+    frame (fixed earlier this session, matching ``iter_camera_frames``'s
+    contract) — but ``mic_level`` polls it every ~200ms to drive a live VU
+    meter and its own docstring says a failed capture should read as
+    silence, not blow up the poll. This is the case an unguarded call used
+    to leak straight to the caller.
+    """
+
+    async def _raises(*a, **k):
+        raise RuntimeError("ffmpeg exited before yielding a frame")
+        yield  # pragma: no cover — makes this an async generator function
+
+    monkeypatch.setattr("capture_helper.preview.iter_mic_audio", _raises)
+    level = await mic_level({"kind": "microphone"})
+    assert level == {"rms": 0.0, "rms_dbfs": -120.0, "peak": 0.0, "peak_dbfs": -120.0}
