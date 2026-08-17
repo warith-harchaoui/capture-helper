@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.2] - 2026-08-17
 
 ### Fixed
 
@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Compose with video-helper / podcast-helper contracts" — piping
   `ch.iter_camera_frames(...)` straight into `video_helper.iter_frame_optical_flow(...)`
   for live dense optical flow, no glue code, no new dependency on this side.
+- `EXAMPLES.md` / `EXEMPLES.md`: fixed a stale `iter_optical_flow` reference
+  left over from video-helper's rename to `iter_frame_optical_flow`.
+- README.md / LISEZMOI.md: the opening explainer used unglossed jargon
+  (BGR uint8, PCM) with no plain-language foothold for a first-time reader;
+  glossed each term on first use. Replaced a circular definition of the
+  scene configurator with an actual explanation of what the JSON scene
+  format buys you (portability, replay without a browser).
 
 ## [1.2.1] - 2026-08-15
 
