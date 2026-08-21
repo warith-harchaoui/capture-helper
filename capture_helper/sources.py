@@ -159,8 +159,16 @@ def _parse_dshow_devices(stderr: str) -> list[Source]:
 
         [dshow @ ...] DirectShow video devices
         [dshow @ ...]  "Integrated Webcam"
+        [dshow @ ...]     Alternative name "@device_pnp_\\\\?\\usb#..."
         [dshow @ ...] DirectShow audio devices
         [dshow @ ...]  "Microphone Array (Realtek...)"
+
+    Real ffmpeg builds emit an indented ``Alternative name "..."`` line right
+    after each device's own quoted name, a machine-readable device path
+    ffmpeg also accepts as ``-i``. It is NOT a second device: naively
+    matching every quoted line would double-count devices and shift every
+    later index, so ``pick_source(..., index=N)`` would silently resolve to
+    the wrong camera/microphone on Windows.
     """
     out: list[Source] = []
     current_kind: SourceKind | None = None
@@ -174,6 +182,13 @@ def _parse_dshow_devices(stderr: str) -> list[Source]:
             current_kind = "microphone"
             continue
         if current_kind is None:
+            continue
+        # Skip the "Alternative name" line ffmpeg prints under each device:
+        # it is metadata for the device just emitted, not a new device.
+        # ``s`` still carries the leading "[dshow @ 0x...]" log tag (only the
+        # line's outer whitespace was stripped above), so check for the
+        # marker anywhere in the line rather than at its start.
+        if "Alternative name" in s:
             continue
         if '"' not in s:
             continue

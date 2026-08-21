@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-08-21
+
+### Fixed
+
+- **`_parse_dshow_devices` double-counted Windows devices**: real ffmpeg
+  builds print an indented `Alternative name "..."` line right after each
+  device's own quoted name (a machine-readable device path ffmpeg also
+  accepts as `-i`). The parser treated that line as a second, bogus device
+  because it only checks for a `"` character; that doubled the reported
+  device count and shifted every later index. On Windows this meant
+  `pick_source(..., index=N)` (and the CLI/API/GUI's index-based selectors
+  built on it) could silently resolve to the wrong camera or microphone.
+  Fixed by skipping lines that carry the `Alternative name` marker before
+  the quoted-string check. Added a regression test
+  (`test_parse_dshow_skips_alternative_name_lines`) built from a realistic
+  fixture with alternative-name lines on every device.
+
 ## [1.2.2] - 2026-08-17
 
 ### Fixed

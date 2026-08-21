@@ -28,6 +28,20 @@ _DSHOW_SAMPLE = """\
 [dshow @ 0000023f3a8e0c00]  "External USB Mic"
 """
 
+# Real ffmpeg builds print an indented "Alternative name" line right after
+# each device's own quoted name (a machine-readable device path). It must
+# NOT be counted as a second device; see the regression test below.
+_DSHOW_SAMPLE_WITH_ALT_NAMES = """\
+[dshow @ 0000023f3a8e0c00] DirectShow video devices (some may be both video and audio devices)
+[dshow @ 0000023f3a8e0c00]  "Integrated Webcam"
+[dshow @ 0000023f3a8e0c00]     Alternative name "@device_pnp_\\\\?\\usb#vid_04f2&pid_b57f"
+[dshow @ 0000023f3a8e0c00] DirectShow audio devices
+[dshow @ 0000023f3a8e0c00]  "Microphone Array (Realtek)"
+[dshow @ 0000023f3a8e0c00]     Alternative name "@device_cm_{33D9A762-90C8}"
+[dshow @ 0000023f3a8e0c00]  "External USB Mic"
+[dshow @ 0000023f3a8e0c00]     Alternative name "@device_cm_{4A2B1C0D-11AA}"
+"""
+
 
 # ---------------------------------------------------------------------------
 # Parsers
@@ -58,6 +72,23 @@ def test_parse_dshow_extracts_both():
     assert [c["name"] for c in cams] == ["Integrated Webcam"]
     assert [m["name"] for m in mics] == ["Microphone Array (Realtek)", "External USB Mic"]
     assert mics[0]["driver"] == "dshow"
+
+
+def test_parse_dshow_skips_alternative_name_lines():
+    """Regression test: "Alternative name" is device metadata, not a device.
+
+    Before the fix, each "Alternative name \"...\"" line was mistaken for a
+    quoted device name, doubling the device count and shifting every later
+    index, so ``pick_source(..., index=N)`` would resolve to the wrong
+    camera/microphone on Windows.
+    """
+    sources = _parse_dshow_devices(_DSHOW_SAMPLE_WITH_ALT_NAMES)
+    cams = [s for s in sources if s["kind"] == "camera"]
+    mics = [s for s in sources if s["kind"] == "microphone"]
+    assert [c["name"] for c in cams] == ["Integrated Webcam"]
+    assert [m["name"] for m in mics] == ["Microphone Array (Realtek)", "External USB Mic"]
+    # Indices must stay dense/correct, not shifted by the bogus entries.
+    assert [m["index"] for m in mics] == [0, 1]
 
 
 def test_parse_garbage_returns_empty():
