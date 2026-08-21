@@ -16,6 +16,8 @@ Local-first library that turns a live camera or microphone into data the rest of
 
 **Local-first by design.** capture-helper runs entirely on your machine; camera and microphone data is captured and processed locally, never uploaded to any third-party service, with no telemetry, no account, no cloud lock-in. Part of the [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) suite: sovereignty over your data through local-first Open Source.
 
+**Battle-tested, not a prototype.** Every change goes through the same gate before it ships: the full test suite and a lint pass run in continuous integration (see the CI badge above), and only a green run gets tagged and published to PyPI under semantic versioning. Downstream, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) depends on capture-helper's live microphone path to feed its speech pipeline in production, so the camera and microphone iterators carry real workloads, not just their own tests.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)

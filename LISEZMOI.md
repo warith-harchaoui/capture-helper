@@ -16,6 +16,8 @@ Bibliothèque local-first qui transforme une caméra ou un micro en direct en do
 
 **Local-first par conception.** capture-helper s'exécute entièrement sur votre machine : les données caméra et micro sont capturées et traitées en local, jamais envoyées vers un service tiers, sans télémétrie, sans compte, sans verrouillage cloud. Fait partie de la suite [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) : la souveraineté sur vos données grâce à l'open source local-first.
 
+**Éprouvé en production, pas un prototype.** Chaque changement passe par la même porte avant publication : la suite de tests complète et un passage de lint tournent en intégration continue (voir le badge CI ci-dessus), et seul un passage vert est tagué puis publié sur PyPI selon le versionnage sémantique. En aval, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) s'appuie sur le flux micro en direct de capture-helper pour alimenter son pipeline vocal en production : les itérateurs caméra et micro encaissent donc des charges réelles, pas seulement leurs propres tests.
+
 ## Documentation
 
 [💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
