@@ -53,6 +53,8 @@ Warith Harchaoui, Ph.D. — https://linkedin.com/in/warith-harchaoui/
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 import uuid
 from pathlib import Path
 from typing import Any, TypedDict
@@ -383,6 +385,26 @@ def validate_scene(scene: Any) -> Scene:
 # ---------------------------------------------------------------------------
 
 
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Write ``content`` to ``path`` atomically: no reader ever sees a partial write.
+
+    Writes to a sibling temp file in the same directory (so the final
+    ``os.replace`` is a same-filesystem rename, not a cross-filesystem copy)
+    then renames it over the destination. A crash or a concurrent
+    :func:`load_scene` mid-write sees either the old scene or the fully
+    -written new one, never a truncated JSON file that would otherwise
+    surface as a spurious "not valid JSON" error.
+    """
+    fd, tmp_name = tempfile.mkstemp(dir=str(path.parent), prefix=f".{path.name}.")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+        os.replace(tmp_name, path)
+    except BaseException:
+        Path(tmp_name).unlink(missing_ok=True)
+        raise
+
+
 def save_scene(scene: Scene, path: str | Path) -> str:
     """
     Serialise a scene to a JSON file on disk.
@@ -426,7 +448,7 @@ def save_scene(scene: Scene, path: str | Path) -> str:
         osh.make_directory(str(out.parent))
 
     # Pretty-print for human diffability; scenes are small and mostly hand-read.
-    out.write_text(json.dumps(scene, indent=2, ensure_ascii=False), encoding="utf-8")
+    _atomic_write_text(out, json.dumps(scene, indent=2, ensure_ascii=False))
     osh.info("capture-helper: saved scene %r -> %s", scene["name"], str(out))
     return str(out.resolve())
 

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-08-24
+
+### Fixed
+
+- **`save_scene` wrote its JSON file non-atomically** (plain
+  `Path.write_text`), so a crash or power loss mid-write could leave a
+  truncated `.scene.json` — `load_scene` already degrades that to a clean
+  `ValueError` rather than crashing raw, but the last known-good scene
+  would still be lost. Now writes via a sibling-temp-file-then-
+  `os.replace`, matching the atomic-write convention used elsewhere in the
+  suite for exactly this reason.
+
 ## [1.2.3] - 2026-08-21
 
 ### Fixed
