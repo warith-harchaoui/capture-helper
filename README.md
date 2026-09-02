@@ -167,6 +167,17 @@ docker run --rm -p 8000:8000 capture-helper
 
 The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras and microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
+## Rust rewrite
+
+A companion crate, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs),
+rewrites the microphone half — device enumeration plus a streaming `MicFrame`
+iterator on top of [`cpal`](https://crates.io/crates/cpal) — in native Rust.
+No camera, no GUI, no video, just the audio-capture core. The interest: it
+talks to CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire directly, so it needs
+neither `ffmpeg` nor a Python runtime on the target machine — a better fit
+when live mic capture is embedded inside a Rust application (a native app, an
+embedded device) rather than orchestrated from Python.
+
 ## Author
 
  - [Warith HARCHAOUI](https://linkedin.com/in/warith-harchaoui)
