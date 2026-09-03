@@ -598,7 +598,17 @@ async def scene_save(background: BackgroundTasks, request: Request):
         raise HTTPException(status_code=400, detail=f"invalid scene: {exc}") from exc
 
     tmp = _new_tmpdir()
-    name = str(payload.get("name") or "scene")
+    # ``name`` comes straight from the request body — a client controls it
+    # completely. Without sanitizing it, a name like "../../../etc/cron.d/x"
+    # turns this into a path-traversal write: ``tmp / f"{name}.scene.json"``
+    # would resolve outside ``tmp`` and ``save_scene`` would happily create
+    # the parent directories and write there. Keep only characters that are
+    # safe in a bare filename component; anything else (including any "/"
+    # or "\\", so no directory component can smuggle through) is dropped.
+    raw_name = str(payload.get("name") or "scene")
+    name = "".join(c for c in raw_name if c.isalnum() or c in ("-", "_", " ")).strip()
+    if not name:
+        name = "scene"
     out_path = tmp / f"{name}.scene.json"
     # Reuse the library save so the on-disk shape matches the CLI exactly.
     with _cleanup_on_error(tmp):

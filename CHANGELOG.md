@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`POST /scene/save` path traversal**: the endpoint built its output
+  filename directly from the request body's `name` field with no
+  sanitization, so a value like `"../../../etc/cron.d/x"` could write a
+  file outside the request's own temp directory — an arbitrary-file-write
+  reachable over HTTP (the API is documented to run bound to `0.0.0.0`,
+  not just localhost). Now derives the filename from a whitelist
+  (alphanumerics, `-`, `_`, space only), so no directory separator can
+  survive the filter regardless of how the input is crafted.
+
 ## [1.2.4] - 2026-08-24
 
 ### Fixed

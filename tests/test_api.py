@@ -172,6 +172,41 @@ def test_scene_save_rejects_malformed(client):
     assert r.status_code == 400
 
 
+def test_scene_save_sanitizes_path_traversal_name(client, tmp_path, monkeypatch):
+    """A ``name`` containing "../" must not let the client write outside the
+    request's own temp dir (path traversal / arbitrary file write)."""
+    import capture_helper.api as api_module
+
+    # Point capture-helper's temp-dir factory at a directory we control so we
+    # can assert nothing landed outside it, without touching the real /tmp.
+    sandbox = tmp_path / "sandbox"
+    sandbox.mkdir()
+    monkeypatch.setattr(
+        api_module, "_new_tmpdir", lambda: api_module.Path(sandbox) / "capture-helper-test"
+    )
+    (sandbox / "capture-helper-test").mkdir()
+
+    # ``tmp`` (the request-scoped dir the endpoint writes into) is
+    # ``sandbox/capture-helper-test``; "../outside/pwned" climbs one level
+    # out of it and back down into a sibling "outside" dir — i.e. it
+    # attempts to write to ``sandbox/outside/pwned.scene.json``, a location
+    # the request never created and has no business touching.
+    canary = sandbox / "outside" / "pwned.scene.json"
+    scene = {
+        "format_version": 1,
+        "name": "../outside/pwned",
+        "width": 640,
+        "height": 360,
+        "sources": [],
+    }
+    r = client.post("/scene/save", json=scene)
+    assert r.status_code == 200
+    # The traversal must have been neutralized: nothing was written at the
+    # attempted escape path, and no new "outside" directory was created.
+    assert not canary.exists()
+    assert not (sandbox / "outside").exists()
+
+
 def _tmp_snapshot() -> set[str]:
     """Snapshot the names of capture-helper's own request-scoped temp dirs."""
     import glob
