@@ -8,9 +8,9 @@
 
 Bibliothèque local-first qui transforme une caméra ou un micro en direct en données que le reste de la suite AI Helpers sait déjà consommer, avec en plus une interface graphique dans le navigateur pour arranger plusieurs sources à la fois. Un flux caméra devient une suite d'images ordinaires : `iter_camera_frames` produit un tableau par image, une grille de couleurs de pixels avec une hauteur, une largeur et trois canaux de couleur rangés dans l'ordre bleu, vert, rouge (le format qu'utilisent OpenCV et le reste de la suite, appelé BGR uint8), identique à celui de `extract_frames` chez [video-helper](https://github.com/warith-harchaoui/video-helper). Un flux micro devient une suite d'échantillons sonores : `iter_mic_audio` produit des `MicFrame`, de petits blocs de mesures audio brutes prises dans le temps (le format standard s'appelle modulation par impulsions codées, PCM en abrégé), identiques à `extract_audio_stream` chez [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Les deux itérateurs parlant le même format que leurs pairs, un code écrit pour une vidéo enregistrée ou un podcast téléchargé tourne sans modification face à une caméra ou un micro en direct. En plus de cela, l'interface graphique permet de glisser plusieurs sources en direct sur un canevas, de les prévisualiser dans le navigateur, puis d'enregistrer l'agencement comme une scène JSON réutilisable que la CLI ou l'API rejoueront plus tard. Les deux itérateurs forment le socle stable ; le configurateur de scène, ajouté plus récemment, vient s'ajouter par-dessus.
 
-[🌍 AI Helpers](https://harchaoui.org/warith/ai-helpers)
+[🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/logo.png)](https://harchaoui.org/warith/ai-helpers)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/logo.png)](https://deraison.ai/ai-helpers)
 
 ## La promesse
 
@@ -20,7 +20,7 @@ Bibliothèque local-first qui transforme une caméra ou un micro en direct en do
 
 ## Documentation
 
-[💻 Documentation](https://harchaoui.org/warith/ai-helpers/docs/capture-helper-doc/)
+[💻 Documentation](https://deraison.ai/ai-helpers/docs/capture-helper-doc/)
 
 [🗺️ Paysage](https://github.com/warith-harchaoui/capture-helper/blob/main/PAYSAGE.md)
 
@@ -86,7 +86,7 @@ asyncio.run(listen())
 - 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
 - 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
 
-Nous recommandons de travailler dans un environnement Python dédié. Si vous ne savez pas encore comment en créer un : [🥸 Astuces techniques](https://harchaoui.org/warith/4ml/#install).
+Nous recommandons de travailler dans un environnement Python dédié. Si vous ne savez pas encore comment en créer un : [🥸 Astuces techniques](https://deraison.ai/4ml/#install).
 
 `ffmpeg` doit être dans le PATH pour que l'énumération des périphériques et la capture en direct renvoient quelque chose.
 
