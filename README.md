@@ -167,6 +167,16 @@ docker run --rm -p 8000:8000 capture-helper
 
 The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras and microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
+### Use it as an agent skill
+
+`skills/capture-helper/` packages capture-helper as a **Claude Skill** *and* an **OpenCode
+skill**, so an agent can reach for it on your behalf. See
+[`skills/README.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/skills/README.md) to install it (symlink into
+`~/.claude/skills/` and `~/.opencode/skills/`), and
+[`TRIGGERS.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md) for the exhaustive trigger catalogue —
+`scripts/check_triggers.py` keeps the skill's description in sync with it, and
+the test suite fails if a capability stops being named.
+
 ## Rust rewrite
 
 A companion crate, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs),
