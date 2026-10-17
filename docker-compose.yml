@@ -1,0 +1,39 @@
+# capture-helper — Compose entry point for the container image next to this file.
+#
+#   docker compose up --build      # HTTP surface on http://localhost:8000
+#   docker compose run --rm capture-helper capture-helper --help   # one-shot CLI instead
+#
+# The image installs the [api] extra, so the FastAPI app is what it serves.
+# Per the suite's rule, MCP is never a second implementation: when the [mcp]
+# extra is present, fastapi-mcp mounts /mcp onto this very app and each tool
+# *is* one of these routes.
+
+services:
+  capture-helper:
+    build: .
+    image: capture-helperocal
+    ports:
+      - "${CAPTURE_HELPER_PORT:-8000}:8000"
+    environment:
+      PYTHONUNBUFFERED: "1"
+      CAPTURE_HELPER_HOST: 0.0.0.0
+      CAPTURE_HELPER_PORT: "8000"
+    # Working files land here rather than inside the container's layer.
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      # python, not curl: the slim image ships no HTTP client, and adding one
+      # just for a probe would grow the image for nothing.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          sys.exit(0 if urllib.request.urlopen("http://localhost:8000/health", timeout=3).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # Generous: the first request pays for module imports.
+      start_period: 20s

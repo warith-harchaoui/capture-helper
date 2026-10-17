@@ -166,6 +166,9 @@ uvicorn capture_helper.api:app --port 8000
 # Docker (ships FastAPI + GUI by default)
 docker build -t capture-helper .
 docker run --rm -p 8000:8000 capture-helper
+
+# Same thing through Compose, with the port, env and health probe already set
+docker compose up --build
 ```
 
 The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras and microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
