@@ -50,6 +50,7 @@ capture-helper scene-show     --input studio.scene.json   # who resolves here
 
 ```python
 import capture_helper as ch
+
 scene = ch.load_scene("studio.scene.json")
 for r in ch.resolve_scene_sources(scene):
     print(r["scene_source"]["label"], "->", r["resolved"] or r["error"])

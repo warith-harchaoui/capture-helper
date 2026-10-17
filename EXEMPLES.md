@@ -132,8 +132,7 @@ for frame in ch.iter_camera_frames(cam, width=1280, height=720, fps=30):
 cv2.destroyAllWindows()
 
 # 224x224 en letterbox (ratio préservé, padding noir) : forme d'entrée ML courante.
-for frame in ch.iter_camera_frames(cam, output_width=224, output_height=224,
-                                   max_frames=10):
+for frame in ch.iter_camera_frames(cam, output_width=224, output_height=224, max_frames=10):
     # frame.shape == (224, 224, 3), dtype uint8, BGR.
     print(frame.shape, frame.dtype)
     # (224, 224, 3) uint8
@@ -156,10 +155,7 @@ au nouveau Nyquist).
 ```python
 async def listen():
     mic = ch.pick_source("microphone")
-    async for f in ch.iter_mic_audio(mic,
-                                     target_sample_rate=16000,
-                                     to_mono=True,
-                                     frame_ms=20):
+    async for f in ch.iter_mic_audio(mic, target_sample_rate=16000, to_mono=True, frame_ms=20):
         # f["pcm"].shape == (320,) pour 20 ms à 16 kHz mono.
         # f["t_abs_s"] est monotone depuis l'instant où ffmpeg s'est accroché.
         # f["voiced"] vaut None : un VAD en aval le renseigne s'il est utilisé.
@@ -168,6 +164,7 @@ async def listen():
         # (320,) 0.02
         # (320,) 0.04
         # ...
+
 
 asyncio.run(listen())
 ```
@@ -181,6 +178,7 @@ async def record_5s():
     async for f in ch.iter_mic_audio(mic, max_frames=5 * 50):  # 50 frames/s à 20 ms
         chunks.append(f["pcm"])
     return chunks
+
 
 audio_chunks = asyncio.run(record_5s())
 print(len(audio_chunks))
@@ -198,6 +196,7 @@ import asyncio
 import capture_helper as ch
 import podcast_helper as ph
 
+
 # La même boucle VAD / ASR fonctionne sur :
 #   - une URL YouTube (via ph.extract_audio_stream)
 #   - un fichier local (idem)
@@ -206,11 +205,12 @@ async def transcribe(frames_async_iter):
     chunks = []
     async for f in frames_async_iter:
         chunks.append(f["pcm"])
-        if len(chunks) * 0.02 >= 5.0:           # toutes les 5 secondes
+        if len(chunks) * 0.02 >= 5.0:  # toutes les 5 secondes
             audio = np.concatenate(chunks)
             print(whisper.transcribe(audio))
             # "And in tonight's headlines, the Senate voted..."
             chunks.clear()
+
 
 # Piloté par URL
 asyncio.run(transcribe(ph.extract_audio_stream("https://feeds.npr.org/510289/podcast.xml")))
@@ -239,7 +239,7 @@ frames = ch.iter_camera_frames(cam, width=1280, height=720, fps=30)
 # Même appel que vh.iter_frame_optical_flow(vh.extract_frames("clip.mp4"), method="dis").
 # Seule la source de frames a changé, d'un fichier vers une caméra live.
 for flow_frame in vh.iter_frame_optical_flow(frames, method="dis"):
-    bgr = flow_frame[..., :3].astype("uint8")        # retour à une frame classique
+    bgr = flow_frame[..., :3].astype("uint8")  # retour à une frame classique
     vx, vy = flow_frame[..., 3], flow_frame[..., 4]  # mouvement par pixel en direct
 ```
 
@@ -256,9 +256,16 @@ input_args = ch.ffmpeg_input_args(cam)
 # ['-f', 'avfoundation', '-i', '0:none']
 
 # Capture ponctuelle.
-cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error",
-       *input_args,
-       "-frames:v", "1", "snapshot.png"]
+cmd = [
+    "ffmpeg",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    *input_args,
+    "-frames:v",
+    "1",
+    "snapshot.png",
+]
 subprocess.run(cmd, check=True)
 print("Saved snapshot.png from", cam["name"])
 # Saved snapshot.png from FaceTime HD Camera
@@ -298,8 +305,9 @@ import capture_helper as ch
 
 # Construire une scène : une caméra plein canevas + un microphone.
 scene = ch.new_scene("studio", width=1280, height=720)
-scene = ch.add_source(scene, kind="camera", name_substring="FaceTime",
-                      x=0, y=0, w=1280, h=720, params={"fps": 30})
+scene = ch.add_source(
+    scene, kind="camera", name_substring="FaceTime", x=0, y=0, w=1280, h=720, params={"fps": 30}
+)
 scene = ch.add_source(scene, kind="microphone", name_substring="Built-in")
 
 # La persister (validée à l'écriture).
@@ -317,7 +325,7 @@ for r in ch.resolve_scene_sources(scene):
 Ou laisser la machine amorcer une scène de départ à partir de ce qu'elle a :
 
 ```python
-scene = ch.scene_from_available_devices("auto")   # première caméra + premier micro
+scene = ch.scene_from_available_devices("auto")  # première caméra + premier micro
 ch.save_scene(scene, "auto.scene.json")
 ```
 

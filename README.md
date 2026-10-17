@@ -63,18 +63,21 @@ for s in ch.list_sources():
 
 # Camera → numpy BGR frames (drop-in for video_helper.extract_frames)
 cam = ch.pick_source("camera")
-for frame in ch.iter_camera_frames(cam, output_width=640, output_height=360,
-                                   fps=30, max_frames=300):
+for frame in ch.iter_camera_frames(
+    cam, output_width=640, output_height=360, fps=30, max_frames=300
+):
     # frame.shape == (360, 640, 3), dtype uint8, BGR.
     do_something(frame)
+
 
 # Microphone → async PCM stream (drop-in for podcast_helper.extract_audio_stream)
 async def listen():
     mic = ch.pick_source("microphone")
-    async for f in ch.iter_mic_audio(mic, target_sample_rate=16000,
-                                     to_mono=True, frame_ms=20):
+    async for f in ch.iter_mic_audio(mic, target_sample_rate=16000, to_mono=True, frame_ms=20):
         # f["pcm"].shape == (320,), 20ms of audio at 16kHz mono.
         await asr.feed(f["pcm"])
+
+
 asyncio.run(listen())
 ```
 
