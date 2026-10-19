@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-19
+
+### Fixed
+
+- **`frame_to_jpeg` silently inverted the caller's quality request.** ffmpeg's
+  `-q:v` runs 2 (best) to 31 (worst), while nearly every other JPEG encoder uses
+  the opposite convention: OpenCV's `IMWRITE_JPEG_QUALITY` and PIL's
+  `save(quality=)` are both 0–100 with *higher* meaning better. ffmpeg clamps
+  out-of-range values without a word.
+
+  A caller arriving from `cv2.imencode(frame, [IMWRITE_JPEG_QUALITY, 95])` —
+  unambiguously asking for high quality — passed `quality=95`, had it clamped to
+  31, and received the worst JPEG the encoder can produce. On a 128×128 noise
+  frame: `q=2` gives 30 820 bytes, `q=5` (the default) 22 521, and `q=31`,
+  `q=95` and `q=100` all give 5 327. The request was not ignored, it was
+  **inverted**, and nothing in the output said so.
+
+  `quality` outside 2–31 now raises `ValueError` naming the inversion, not just
+  the bound — a caller told only "must be 2–31" who then picks 31 has made the
+  same mistake twice. `frame_to_jpeg` is exported in `__all__`, so this was the
+  public surface.
+
+- **`iter_camera_jpeg` validated `quality` too late.** It is a generator, so the
+  check inside `frame_to_jpeg` only fired once `iter_camera_frames` had already
+  opened the device and captured a frame — paying for a camera open to learn
+  about a typo. The check now runs before the capture call.
+
+### Added
+
+- `JPEG_QUALITY_BEST` (2) and `JPEG_QUALITY_WORST` (31) name the legal bounds of
+  the scale, so callers can reason about it without rediscovering the inversion.
+
 ## [1.2.5] - 2026-09-03
 
 ### Fixed

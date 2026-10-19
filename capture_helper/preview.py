@@ -50,6 +50,12 @@ DEFAULT_PREVIEW_WIDTH: int = 480
 DEFAULT_PREVIEW_HEIGHT: int = 270
 DEFAULT_PREVIEW_FPS: float = 10.0
 DEFAULT_JPEG_QUALITY: int = 5  # ffmpeg -q:v scale (2=best … 31=worst); 5 ≈ good.
+# The legal bounds of that scale. Worth naming, because the scale is inverted
+# relative to the convention almost every other JPEG encoder uses (OpenCV's
+# IMWRITE_JPEG_QUALITY and PIL's save(quality=) are both 0-100, higher better),
+# and ffmpeg silently clamps instead of complaining. See frame_to_jpeg.
+JPEG_QUALITY_BEST: int = 2
+JPEG_QUALITY_WORST: int = 31
 
 # MJPEG multipart boundary token. The value is arbitrary but must match the
 # ``Content-Type`` header the HTTP layer advertises for the stream.
@@ -76,6 +82,22 @@ def _ensure_ffmpeg() -> None:
 # ---------------------------------------------------------------------------
 # Camera → JPEG
 # ---------------------------------------------------------------------------
+
+
+def _check_jpeg_quality(quality: int) -> None:
+    """Reject an out-of-range ``-q:v`` instead of letting ffmpeg clamp it.
+
+    Raises
+    ------
+    ValueError
+        If ``quality`` is outside ``[JPEG_QUALITY_BEST, JPEG_QUALITY_WORST]``.
+    """
+    if not JPEG_QUALITY_BEST <= quality <= JPEG_QUALITY_WORST:
+        raise ValueError(
+            f"quality must be between {JPEG_QUALITY_BEST} (best) and "
+            f"{JPEG_QUALITY_WORST} (worst) -- this is ffmpeg's -q:v scale, which is "
+            f"inverted relative to the 0-100 scale OpenCV and PIL use. Got {quality}."
+        )
 
 
 def frame_to_jpeg(frame: np.ndarray, *, quality: int = DEFAULT_JPEG_QUALITY) -> bytes:
@@ -113,6 +135,18 @@ def frame_to_jpeg(frame: np.ndarray, *, quality: int = DEFAULT_JPEG_QUALITY) -> 
     True
     """
     _ensure_ffmpeg()
+    # Reject an out-of-range quality instead of letting ffmpeg clamp it.
+    #
+    # This scale is inverted relative to the one nearly every other encoder
+    # uses: OpenCV's IMWRITE_JPEG_QUALITY and PIL's save(quality=) are both
+    # 0-100 with higher meaning better. ffmpeg's -q:v is 2-31 with *lower*
+    # meaning better, and it clamps out-of-range values in silence. So a caller
+    # arriving from cv2.imencode(..., [IMWRITE_JPEG_QUALITY, 95]) -- i.e. asking
+    # for high quality -- passed 95, got clamped to 31, and received the worst
+    # JPEG the encoder can produce. Measured on a 128x128 noise frame: q=2 gives
+    # 30820 bytes, q=31 and q=95 both give 5327. The request was not merely
+    # ignored, it was inverted, and nothing said so.
+    _check_jpeg_quality(quality)
     # Validate the array shape up front — a wrong dtype/shape would make ffmpeg
     # misread the raw byte stream and produce garbage instead of an error.
     if frame.ndim != 3 or frame.shape[2] != 3 or frame.dtype != np.uint8:
@@ -252,6 +286,11 @@ def iter_camera_jpeg(
     >>> for jpg in iter_camera_jpeg(cam, max_frames=3):  # doctest: +SKIP
     ...     handle(jpg)
     """
+    # Check quality before the device is touched. frame_to_jpeg validates it
+    # too, but this is a generator: without the check here the camera would be
+    # opened and a frame captured before the bad argument surfaced, so the
+    # caller would pay for a device open to learn about a typo.
+    _check_jpeg_quality(quality)
     # Delegate capture to the existing iterator (which owns ffmpeg lifecycle);
     # we only add per-frame JPEG encoding on top.
     for frame in iter_camera_frames(

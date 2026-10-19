@@ -91,3 +91,45 @@ async def test_mic_level_reports_silence_instead_of_raising_on_permission_denied
     monkeypatch.setattr("capture_helper.preview.iter_mic_audio", _raises)
     level = await mic_level({"kind": "microphone"})
     assert level == {"rms": 0.0, "rms_dbfs": -120.0, "peak": 0.0, "peak_dbfs": -120.0}
+
+
+# --- JPEG quality scale -----------------------------------------------------
+# ffmpeg's -q:v is 2-31 with LOWER meaning better, inverted relative to the
+# 0-100 higher-is-better scale OpenCV (IMWRITE_JPEG_QUALITY) and PIL
+# (save(quality=)) both use -- and ffmpeg clamps out-of-range values silently.
+# A caller asking for "95" therefore used to receive the worst JPEG the encoder
+# can make: measured on a 128x128 noise frame, q=2 gives 30820 bytes while q=31
+# and q=95 both give 5327. The request was not ignored, it was inverted.
+
+
+def _frame() -> np.ndarray:
+    return np.zeros((16, 16, 3), dtype=np.uint8)
+
+
+@pytest.mark.parametrize("quality", [95, 100, 0, 1, 32, -5])
+def test_frame_to_jpeg_rejects_an_out_of_range_quality(quality: int) -> None:
+    with pytest.raises(ValueError, match="inverted"):
+        ch.frame_to_jpeg(_frame(), quality=quality)
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not on PATH")
+@pytest.mark.parametrize("quality", [2, 5, 31])
+def test_frame_to_jpeg_accepts_the_whole_legal_range(quality: int) -> None:
+    """Both ends of the scale are legal, including the boundaries."""
+    jpg = ch.frame_to_jpeg(_frame(), quality=quality)
+    assert jpg[:2] == b"\xff\xd8"  # JPEG SOI
+
+
+def test_iter_camera_jpeg_validates_before_opening_the_device() -> None:
+    """It is a generator, so the check has to happen before the capture call.
+
+    Without an early check the camera would be opened and a frame captured
+    before the bad argument surfaced -- paying for a device open to learn
+    about a typo.
+    """
+    gen = ch.iter_camera_jpeg(
+        source={"kind": "camera", "id": "0", "name": "fake"},
+        quality=95,
+    )
+    with pytest.raises(ValueError, match="inverted"):
+        next(gen)
