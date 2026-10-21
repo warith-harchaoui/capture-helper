@@ -173,6 +173,13 @@ docker compose up --build
 
 The **GUI** at `/gui` is the live multi-source scene configurator: it enumerates your cameras and microphones, live-previews each camera (MJPEG) and each mic (level meter), lets you arrange them on a canvas, and saves the design as a reusable `.scene.json` the CLI / API can replay. See [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
+The page speaks **French and English**. `GET /gui?lang=fr|en` picks one, a flag
+in the header toggles between them, and a code the locale file does not carry
+falls back to the default rather than failing. Every string lives in
+[`capture_helper/locales/i18n.yaml`](https://github.com/warith-harchaoui/capture-helper/blob/main/capture_helper/locales/i18n.yaml),
+read through `os_helper.Locales` — the loader shared across the suite — so
+translating the page never means opening a Python file.
+
 ### Use it as an agent skill
 
 `skills/capture-helper/` packages capture-helper as a **Claude Skill** *and* an **OpenCode

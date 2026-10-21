@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-21
+
+### Added
+
+- **The scene-configurator GUI speaks French and English.** Every string it
+  shows now comes from `capture_helper/locales/i18n.yaml` through
+  `os_helper.Locales`, the loader shared across the suite (CODING.md 21.3),
+  instead of being written into the markup. `GET /gui?lang=fr|en` picks the
+  language; anything the file does not carry — including a mistyped code and
+  the empty default — falls back to the declared default locale, so a bad
+  `?lang=` returns a page rather than a 500. A flag in the header toggles
+  between the two.
+
+  The template is tokenised (`{{TOKEN}}` in HTML, a `T` object for the
+  script), so one piece of markup serves both languages and a translator never
+  opens a Python file. The script's strings are injected as JSON rather than
+  substituted as text: it is the encoding an apostrophe cannot break out of,
+  and French copy is full of them. Nine of them carry named fields
+  (`{error}`, `{cameras}`, `{mics}`, `{label}`) rather than being
+  concatenated, so a translator can reorder the sentence.
+
+  `GUI_HTML` still resolves, via a module-level `__getattr__` that renders on
+  access — importers that predate this keep working, and the locale file is
+  not read by callers that never serve the GUI.
+
+  Two strings deliberately stayed out of the catalogue. The scene's default
+  name (`untitled`) is written into the saved artifact, so translating it
+  would make one scene carry two names depending on which language the page
+  happened to be in. The inspector's `x` / `y` / `w` field labels are single
+  letters that mean the same thing everywhere.
+
+### Changed
+
+- **The declared `os-helper` floor rises to 2.4.0**, the version that
+  introduced `Locales`. It was `>=2.0.0`, which the GUI can no longer honour:
+  a user installing against os-helper 2.0.x would get an `AttributeError` out
+  of the `/gui` route. Nothing would have caught it — pip resolves the newest
+  os-helper, never the floor, so neither CI nor a developer machine ever
+  installs the version the declaration permits. `tests/test_gui_i18n.py` now
+  asserts the floor against the feature it needs; verified by lowering the
+  line and watching the guard fire.
+
+### Fixed
+
+- **Two GUI tests asserted the default language rather than the page's
+  identity.** They looked for the literal `"scene configurator"`, which is no
+  longer what a French default renders. They now ask the locale file what the
+  page is called.
+
+### Notes
+
+- `[tool.setuptools.package-data]` did not exist in this project; the locale
+  file is the first non-`.py` file the package ships, and it is declared there
+  now. Verified the way the sibling defect was found: the built wheel was
+  opened and the file found inside it. best-engine-ai-helper published wheels
+  containing none of its five data files until 1.6.1 because its patterns
+  resolved against the repository root rather than against a package.
+
 ## [1.3.0] - 2026-10-19
 
 ### Fixed

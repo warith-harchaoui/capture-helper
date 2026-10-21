@@ -96,6 +96,21 @@ def test_pick_returns_404_when_no_match(client):
 # ---------------------------------------------------------------------------
 
 
+def _page_name() -> str:
+    """The GUI's own name, in whatever language it renders by default.
+
+    Escaped the way the page escapes it: a French title can carry an
+    apostrophe, which `render_gui` writes as `&#x27;` — correct HTML that a
+    browser renders as an apostrophe, and not the literal the locale file
+    holds.
+    """
+    import html
+
+    from capture_helper import gui
+
+    return html.escape(gui._locales().text("gui", "hero_title"), quote=True).lower()
+
+
 def test_gui_returns_200_html(client):
     """``GET /gui`` should return 200 with a self-contained configurator page."""
     r = client.get("/gui")
@@ -105,7 +120,10 @@ def test_gui_returns_200_html(client):
     body = r.text.lower()
     assert "<!doctype html>" in body
     # Sanity-check it is the scene configurator and wires the real endpoints.
-    assert "scene configurator" in body
+    # Ask the locale file what the page is called rather than hard-coding one
+    # language's wording: the page renders in French by default, so asserting
+    # the English copy would be testing the default locale, not the page.
+    assert _page_name() in body
     assert "/sources" in r.text and "/preview/camera.mjpeg" in r.text
     assert "/scene/save" in r.text and "/scene/load" in r.text
 
@@ -115,7 +133,7 @@ def test_root_redirects_to_gui(client):
     # follow_redirects defaults True in the TestClient; assert we land on HTML.
     r = client.get("/")
     assert r.status_code == 200
-    assert "scene configurator" in r.text.lower()
+    assert _page_name() in r.text.lower()
 
 
 def test_scene_auto_returns_valid_scene(client):
