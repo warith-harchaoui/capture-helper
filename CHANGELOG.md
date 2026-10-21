@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-21
+
+### Changed
+
+- **The GUI's strings moved from `locales/i18n.yaml` to a `gettext`
+  catalogue**, the suite-wide mechanism as of os-helper 2.6.0. The English is
+  now the source, written in the markup itself as `{{_("…")}}`; the French
+  lives in `capture_helper/locales/fr/LC_MESSAGES/capture_helper.po` and is
+  read through `os_helper.Catalog`.
+
+  A string the French catalogue has not caught up with renders as **readable
+  English** instead of as a key. The cost is the mirror image — rewording the
+  English orphans its French entry, and gettext would quietly serve the
+  English — so `tests/test_gui_i18n.py` hands every source string to
+  `Catalog.problems`, which names both halves of that fault.
+
+- **The default scene name stays `untitled` in every language, and now has a
+  test saying so.** It is written into a saved scene file, so translating it
+  would make the contents of that file depend on the browser that produced it.
+  It lives in `_JS_INVARIANTS`, outside the catalogue, precisely so no
+  translator can reach it — and the new test renders both languages and
+  asserts it did not move. Proven by moving it into the translated map and
+  watching the suite go red.
+
+  The language toggle is likewise computed rather than translated: its three
+  parts all mean "the other language", which is data, not copy.
+
 ## [1.4.0] - 2026-10-21
 
 ### Added

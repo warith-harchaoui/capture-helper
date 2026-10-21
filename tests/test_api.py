@@ -104,11 +104,13 @@ def _page_name() -> str:
     browser renders as an apostrophe, and not the literal the locale file
     holds.
     """
-    import html
+    import re
 
     from capture_helper import gui
 
-    return html.escape(gui._locales().text("gui", "hero_title"), quote=True).lower()
+    title = re.search(r"<title>([^<]*)</title>", gui.render_gui())
+    assert title, "the default page has no <title>"
+    return title.group(1).lower()
 
 
 def test_gui_returns_200_html(client):

@@ -1,0 +1,141 @@
+# fr catalogue for capture-helper.
+#
+# msgid is the English source string as it appears in the code, so a
+# reworded source needs its entry reworded too — os_helper.Catalog.problems
+# reports the mismatch rather than letting the page half-revert to English.
+msgid ""
+msgstr ""
+"Project-Id-Version: capture-helper\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Auto-populate"
+msgstr "Remplir automatiquement"
+
+msgid "Auto-populate failed: {error}"
+msgstr "Échec du remplissage automatique : {error}"
+
+msgid "Auto-populated."
+msgstr "Rempli automatiquement."
+
+msgid "Auto-populating from the server…"
+msgstr "Remplissage automatique depuis le serveur…"
+
+msgid "Cameras"
+msgstr "Caméras"
+
+msgid "Canvas size"
+msgstr "Taille du canevas"
+
+msgid "Capture Helper — Scene Configurator"
+msgstr "Capture Helper — Configurateur de scène"
+
+msgid "Clear"
+msgstr "Vider"
+
+msgid "Click a device to add it to the scene."
+msgstr "Cliquez un appareil pour l'ajouter à la scène."
+
+msgid "Could not reach the API: {error}"
+msgstr "Impossible de joindre l'API : {error}"
+
+msgid "Devices"
+msgstr "Appareils"
+
+msgid "Drag a camera tile to move it."
+msgstr "Faites glisser une tuile caméra pour la déplacer."
+
+msgid "Empty scene — add a camera from the palette or hit Auto-populate."
+msgstr "Scène vide — ajoutez une caméra depuis la palette ou cliquez Remplir automatiquement."
+
+msgid "Enumerating devices…"
+msgstr "Énumération des appareils…"
+
+msgid "Found {cameras} camera(s), {mics} mic(s)."
+msgstr "{cameras} caméra(s), {mics} microphone(s) trouvés."
+
+msgid "Inspector"
+msgstr "Inspecteur"
+
+msgid "Live multi-source scene configurator. Enumerate your cameras &amp; microphones, drop them on the canvas, preview them live, arrange, then save the design as a reusable scene the CLI / API can replay. Local-first — nothing leaves your machine."
+msgstr "Configurateur de scène multi-sources en direct. Énumérez vos caméras et microphones, posez-les sur le canevas, prévisualisez-les en direct, arrangez, puis enregistrez le montage comme une scène réutilisable que la CLI et l'API rejouent. Tout en local — rien ne quitte votre machine."
+
+msgid "Live preview of {label}"
+msgstr "Aperçu en direct de {label}"
+
+msgid "Load failed: {error}"
+msgstr "Échec du chargement : {error}"
+
+msgid "Load scene…"
+msgstr "Charger une scène…"
+
+msgid "Loading…"
+msgstr "Chargement…"
+
+msgid "Microphones"
+msgstr "Microphones"
+
+msgid "No devices found."
+msgstr "Aucun appareil trouvé."
+
+msgid "No devices reported. On a headless server this is expected. Locally, check OS camera / microphone permissions and that"
+msgstr "Aucun appareil signalé. Sur un serveur sans écran, c'est attendu. En local, vérifiez les autorisations caméra / microphone du système et que"
+
+msgid "Re-enumerate devices"
+msgstr "Réénumérer les appareils"
+
+msgid "Refresh"
+msgstr "Rafraîchir"
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "Save failed: {error}"
+msgstr "Échec de l'enregistrement : {error}"
+
+msgid "Save scene (JSON)"
+msgstr "Enregistrer la scène (JSON)"
+
+msgid "Saved & downloaded."
+msgstr "Enregistré et téléchargé."
+
+msgid "Saving…"
+msgstr "Enregistrement…"
+
+msgid "Scene"
+msgstr "Scène"
+
+msgid "Scene artifact"
+msgstr "Fichier de scène"
+
+msgid "Scene loaded."
+msgstr "Scène chargée."
+
+msgid "Scene name"
+msgstr "Nom de la scène"
+
+msgid "Select a source to edit it."
+msgstr "Choisissez une source pour la modifier."
+
+msgid "Show scene JSON"
+msgstr "Afficher le JSON de la scène"
+
+msgid "height"
+msgstr "hauteur"
+
+msgid "is installed."
+msgstr "est installé."
+
+msgid "label"
+msgstr "libellé"
+
+msgid "width"
+msgstr "largeur"
+
+msgid "z (order)"
+msgstr "z (ordre)"
+
+msgid "{label} (no live preview)"
+msgstr "{label} (pas d'aperçu en direct)"

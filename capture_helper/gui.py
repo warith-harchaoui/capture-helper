@@ -9,11 +9,18 @@ the API returns verbatim.
 
 Where the words live
 --------------------
-Not here. Every human-readable string comes from ``locales/i18n.yaml``
-through :class:`os_helper.Locales`, the loader shared across the suite
-(``CODING.md`` 21.3). The markup below is tokenised — ``{{TOKEN}}`` in HTML,
-and a ``T`` object injected for the script — so one template serves every
-language and a translator never touches Python.
+In the markup, in English. Each one is wrapped as ``{{_("…")}}`` in the HTML,
+or listed in :data:`_JS_NAME_TO_SOURCE` for the script, and
+:class:`os_helper.Catalog` translates it through the compiled ``gettext``
+catalogues under ``locales/`` (``CODING.md`` 21.3).
+
+English is the msgid, so it needs no catalogue and cannot fall out of sync with
+one; a string the French catalogue has not caught up with renders as readable
+English instead of as a key. The cost is the mirror image: rewording the
+English here orphans its French entry, and gettext would quietly serve the
+English. ``tests/test_gui_i18n.py`` exists to catch that — it hands every source
+string to :meth:`os_helper.Catalog.problems`, so an orphaned translation is a
+red build rather than a half-reverted page.
 
 :func:`render_gui` resolves a language and returns the finished page.
 
@@ -43,6 +50,7 @@ from __future__ import annotations
 import functools
 import html
 import json
+import re
 from pathlib import Path
 
 import os_helper as osh
@@ -50,98 +58,91 @@ import os_helper as osh
 # Inside the package, not beside it: a file one level up is not package data
 # and does not travel in the wheel. best-engine shipped exactly that bug —
 # `pip install` gave a package whose every GUI string raised FileNotFoundError.
-_LOCALES_PATH = Path(__file__).resolve().parent / "locales" / "i18n.yaml"
+_LOCALES_DIR = Path(__file__).resolve().parent / "locales"
 
-#: The section of the locale file this module reads.
-_GUI_SECTION = "gui"
+#: The gettext domain, and therefore each ``.mo`` file's stem.
+_DOMAIN = "capture_helper"
+
+#: The language served when the request names one we cannot render.
+_DEFAULT_LANGUAGE = "fr"
 
 
 @functools.lru_cache(maxsize=1)
-def _locales() -> osh.Locales:
-    """Parse ``locales/i18n.yaml`` once, through the suite's shared loader."""
-    return osh.Locales.from_path(_LOCALES_PATH)
+def _catalog() -> osh.Catalog:
+    """Resolve the catalogue directory once, through the suite's shared loader."""
+    return osh.Catalog.from_package(_LOCALES_DIR, _DOMAIN, default_language=_DEFAULT_LANGUAGE)
 
 
 def supported_languages() -> tuple[str, ...]:
-    """Language codes the GUI can render, as declared by the locale file."""
-    return tuple(_locales().supported_locales)
+    """Language codes the GUI can render: English plus every compiled catalogue."""
+    return _catalog().languages
 
 
 def default_language() -> str:
     """The language an unknown or absent ``?lang=`` falls back to."""
-    return _locales().default_locale
+    return _catalog().default_language
 
 
-# Two vocabularies meet here: the template's tokens and the locale file's
-# semantic keys. These maps bridge them. `_HTML_TOKEN_TO_KEY` fills {{TOKEN}}
-# placeholders; `_JS_NAME_TO_KEY` builds the `const T = {...}` the script reads.
-_HTML_TOKEN_TO_KEY: dict[str, str] = {
-    "PAGE_TITLE": "page_title",
-    "HERO_TITLE": "hero_title",
-    "HERO_P": "hero_subtitle",
-    "SCENE_LABEL": "scene_label",
-    "SCENE_NAME_ARIA": "scene_name_aria",
-    "SCENE_NAME_DEFAULT": "scene_name_default",
-    "DEVICES_H2": "devices_heading",
-    "REFRESH_BUTTON": "refresh_button",
-    "REFRESH_TITLE": "refresh_title",
-    "PALETTE_HINT": "palette_hint",
-    "CAMERAS_H3": "cameras_heading",
-    "MICROPHONES_H3": "microphones_heading",
-    "PALETTE_EMPTY_LEAD": "palette_empty_lead",
-    "PALETTE_EMPTY_TAIL": "palette_empty_tail",
-    "AUTOFILL_BUTTON": "autofill_button",
-    "CLEAR_BUTTON": "clear_button",
-    "DRAG_HINT": "drag_hint",
-    "CANVAS_EMPTY": "canvas_empty",
-    "INSPECTOR_H2": "inspector_heading",
-    "INSPECTOR_EMPTY": "inspector_empty",
-    "CANVAS_SIZE_H2": "canvas_size_heading",
-    "WIDTH_LABEL": "width_label",
-    "HEIGHT_LABEL": "height_label",
-    "SCENE_ARTIFACT_H2": "scene_artifact_heading",
-    "SAVE_BUTTON": "save_button",
-    "LOAD_LABEL": "load_label",
-    "SHOW_JSON_BUTTON": "show_json_button",
-    "LANG_HREF": "lang_toggle_href",
-    "LANG_FLAG": "lang_toggle_flag",
-    "LANG_ARIA": "lang_toggle_aria",
+# The language toggle is computed, not translated. Its three parts all mean
+# "the other language", which is data rather than copy: a msgid of
+# ``/gui?lang=fr`` whose translation is ``/gui?lang=en`` would be nonsense, and
+# `Catalog.problems` would rightly treat it as prose that had drifted.
+#
+#: Flag shown for a language — the flag of that language, not of the page.
+_FLAGS: dict[str, str] = {"fr": "🇫🇷", "en": "🇬🇧"}
+
+#: How each language names itself. Deliberately NOT translated: a French page
+#: offering English says "English version" in English, which is what a reader
+#: scanning for their own language actually looks for.
+_ENDONYMS: dict[str, str] = {"fr": "Version française", "en": "English version"}
+
+
+# The inline script's strings. The JS names are the contract between this
+# module and the script below; the English beside each one is the msgid, so
+# the script's copy lives in the same place as the markup's and is checked
+# by the same test. Injected as JSON, which is the one encoding an
+# apostrophe cannot break out of — and French copy is full of them.
+_JS_NAME_TO_SOURCE: dict[str, str] = {
+    "inspectorEmpty": "Select a source to edit it.",
+    "enumerating": "Enumerating devices…",
+    "apiUnreachable": "Could not reach the API: {error}",
+    "found": "Found {cameras} camera(s), {mics} mic(s).",
+    "noDevices": "No devices found.",
+    "previewAlt": "Live preview of {label}",
+    "noLivePreview": "{label} (no live preview)",
+    "removeButton": "Remove",
+    "labelField": "label",
+    "zField": "z (order)",
+    "saving": "Saving…",
+    "saveFailed": "Save failed: {error}",
+    "saved": "Saved & downloaded.",
+    "loading": "Loading…",
+    "loadFailed": "Load failed: {error}",
+    "loaded": "Scene loaded.",
+    "autofilling": "Auto-populating from the server…",
+    "autofilled": "Auto-populated.",
+    "autofillFailed": "Auto-populate failed: {error}",
 }
 
-_JS_NAME_TO_KEY: dict[str, str] = {
-    "sceneNameDefault": "scene_name_default",
-    "inspectorEmpty": "inspector_empty",
-    "enumerating": "js_enumerating",
-    "apiUnreachable": "js_api_unreachable",
-    "found": "js_found",
-    "noDevices": "js_no_devices",
-    "previewAlt": "js_preview_alt",
-    "noLivePreview": "js_no_live_preview",
-    "removeButton": "js_remove_button",
-    "labelField": "js_label_field",
-    "zField": "js_z_field",
-    "saving": "js_saving",
-    "saveFailed": "js_save_failed",
-    "saved": "js_saved",
-    "loading": "js_loading",
-    "loadFailed": "js_load_failed",
-    "loaded": "js_loaded",
-    "autofilling": "js_autofilling",
-    "autofilled": "js_autofilled",
-    "autofillFailed": "js_autofill_failed",
+#: Script strings that must NOT change with the language. Each one is
+#: written into an artifact the user keeps, so translating it would make
+#: the saved file depend on the browser that produced it.
+_JS_INVARIANTS: dict[str, str] = {
+    "sceneNameDefault": "untitled",
 }
 
 
-# One template, every language. Human-facing text is tokenised as {{TOKEN}}
-# (HTML) or read from the injected `T` object (JavaScript); `render_gui` fills
-# both. Tailwind is pulled from a CDN so there is no build step; the JavaScript
-# is a single inline ES module talking to the existing capture-helper API.
+#: One ``{{_("…")}}`` site in the template. Non-greedy and newline-free, so a
+#: run of them on one line stays separate and an unterminated one is left
+#: alone rather than swallowing the rest of the page.
+_SOURCE_RE = re.compile(r'\{\{_\("(.*?)"\)\}\}')
+
 _GUI_TEMPLATE: str = r"""<!doctype html>
 <html lang="{{LANG}}" class="h-full">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{PAGE_TITLE}}</title>
+  <title>{{_("Capture Helper — Scene Configurator")}}</title>
   <!-- Tailwind via CDN: keeps the page a single self-contained file, no build. -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -155,17 +156,17 @@ _GUI_TEMPLATE: str = r"""<!doctype html>
   <div class="mx-auto max-w-7xl px-4 py-6">
     <header class="mb-5 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold tracking-tight">{{HERO_TITLE}}</h1>
+        <h1 class="text-2xl font-semibold tracking-tight">{{_("Capture Helper — Scene Configurator")}}</h1>
         <p class="mt-1 text-sm text-slate-600">
-          {{HERO_P}}
+          {{_("Live multi-source scene configurator. Enumerate your cameras &amp; microphones, drop them on the canvas, preview them live, arrange, then save the design as a reusable scene the CLI / API can replay. Local-first — nothing leaves your machine.")}}
         </p>
       </div>
       <div class="flex items-center gap-2">
         <!-- Language toggle: a flag that links to the other locale of this page. -->
         <a href="{{LANG_HREF}}" aria-label="{{LANG_ARIA}}"
            class="text-xl hover:opacity-70">{{LANG_FLAG}}</a>
-        <label for="scene-name" class="text-sm font-medium">{{SCENE_LABEL}}</label>
-        <input id="scene-name" value="{{SCENE_NAME_DEFAULT}}" aria-label="{{SCENE_NAME_ARIA}}"
+        <label for="scene-name" class="text-sm font-medium">{{_("Scene")}}</label>
+        <input id="scene-name" value="untitled" aria-label="{{_("Scene name")}}"
                class="w-40 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm
                       focus:outline-none focus:ring-2 focus:ring-emerald-600" />
       </div>
@@ -175,20 +176,20 @@ _GUI_TEMPLATE: str = r"""<!doctype html>
       <!-- ============ LEFT: device palette ============ -->
       <aside class="rounded-xl border border-slate-200 bg-white p-4">
         <div class="mb-3 flex items-center justify-between">
-          <h2 class="text-sm font-semibold">{{DEVICES_H2}}</h2>
-          <button id="refresh" title="{{REFRESH_TITLE}}"
+          <h2 class="text-sm font-semibold">{{_("Devices")}}</h2>
+          <button id="refresh" title="{{_("Re-enumerate devices")}}"
                   class="rounded-md bg-slate-100 px-2 py-1 text-xs font-medium hover:bg-slate-200
-                         focus:outline-none focus:ring-2 focus:ring-emerald-600">{{REFRESH_BUTTON}}</button>
+                         focus:outline-none focus:ring-2 focus:ring-emerald-600">{{_("Refresh")}}</button>
         </div>
-        <p class="mb-2 text-xs text-slate-500">{{PALETTE_HINT}}</p>
+        <p class="mb-2 text-xs text-slate-500">{{_("Click a device to add it to the scene.")}}</p>
 
-        <h3 class="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{CAMERAS_H3}}</h3>
+        <h3 class="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">{{_("Cameras")}}</h3>
         <ul id="cams" class="space-y-1 text-sm"></ul>
-        <h3 class="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">{{MICROPHONES_H3}}</h3>
+        <h3 class="mb-1 mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">{{_("Microphones")}}</h3>
         <ul id="mics" class="space-y-1 text-sm"></ul>
 
         <div id="palette-empty" class="mt-4 hidden rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-          {{PALETTE_EMPTY_LEAD}} <code>ffmpeg</code> {{PALETTE_EMPTY_TAIL}}
+          {{_("No devices reported. On a headless server this is expected. Locally, check OS camera / microphone permissions and that")}} <code>ffmpeg</code> {{_("is installed.")}}
         </div>
       </aside>
 
@@ -198,12 +199,12 @@ _GUI_TEMPLATE: str = r"""<!doctype html>
           <button id="autofill"
                   class="rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-semibold text-white
                          hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-            {{AUTOFILL_BUTTON}}</button>
+            {{_("Auto-populate")}}</button>
           <button id="clear"
                   class="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold
                          hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-            {{CLEAR_BUTTON}}</button>
-          <span class="ml-auto text-xs text-slate-500">{{DRAG_HINT}}</span>
+            {{_("Clear")}}</button>
+          <span class="ml-auto text-xs text-slate-500">{{_("Drag a camera tile to move it.")}}</span>
         </div>
         <!-- The scene canvas. Camera tiles are absolutely positioned inside; the
              coordinate system is the scene's own pixel space, scaled to fit. -->
@@ -211,7 +212,7 @@ _GUI_TEMPLATE: str = r"""<!doctype html>
              class="relative w-full overflow-hidden rounded-xl border-2 border-slate-300 bg-slate-900">
           <div id="canvas-empty"
                class="absolute inset-0 flex items-center justify-center text-center text-sm text-slate-400">
-            {{CANVAS_EMPTY}}
+            {{_("Empty scene — add a camera from the palette or hit Auto-populate.")}}
           </div>
         </div>
         <!-- Microphone meters live under the canvas (no visual footprint on it). -->
@@ -220,36 +221,36 @@ _GUI_TEMPLATE: str = r"""<!doctype html>
 
       <!-- ============ RIGHT: inspector + save/load ============ -->
       <aside class="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 class="mb-3 text-sm font-semibold">{{INSPECTOR_H2}}</h2>
-        <div id="inspector" class="text-sm text-slate-500">{{INSPECTOR_EMPTY}}</div>
+        <h2 class="mb-3 text-sm font-semibold">{{_("Inspector")}}</h2>
+        <div id="inspector" class="text-sm text-slate-500">{{_("Select a source to edit it.")}}</div>
 
         <hr class="my-4 border-slate-200" />
-        <h2 class="mb-2 text-sm font-semibold">{{CANVAS_SIZE_H2}}</h2>
+        <h2 class="mb-2 text-sm font-semibold">{{_("Canvas size")}}</h2>
         <div class="grid grid-cols-2 gap-2">
-          <label class="text-xs">{{WIDTH_LABEL}}
+          <label class="text-xs">{{_("width")}}
             <input id="canvas-w" type="number" value="1280"
                    class="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm" /></label>
-          <label class="text-xs">{{HEIGHT_LABEL}}
+          <label class="text-xs">{{_("height")}}
             <input id="canvas-h" type="number" value="720"
                    class="mt-1 w-full rounded-lg border border-slate-300 px-2 py-1 text-sm" /></label>
         </div>
 
         <hr class="my-4 border-slate-200" />
-        <h2 class="mb-2 text-sm font-semibold">{{SCENE_ARTIFACT_H2}}</h2>
+        <h2 class="mb-2 text-sm font-semibold">{{_("Scene artifact")}}</h2>
         <div class="flex flex-col gap-2">
           <button id="save"
                   class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white
                          hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600">
-            {{SAVE_BUTTON}}</button>
+            {{_("Save scene (JSON)")}}</button>
           <label class="rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium
                         cursor-pointer hover:bg-slate-50 focus-within:ring-2 focus-within:ring-emerald-600">
-            {{LOAD_LABEL}}
+            {{_("Load scene…")}}
             <input id="load-file" type="file" accept=".json,application/json" class="hidden" />
           </label>
           <button id="show-json"
                   class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-200
                          focus:outline-none focus:ring-2 focus:ring-emerald-600">
-            {{SHOW_JSON_BUTTON}}</button>
+            {{_("Show scene JSON")}}</button>
         </div>
         <span id="status" class="mt-2 block text-xs text-slate-600" role="status" aria-live="polite"></span>
         <pre id="json" class="mt-2 hidden max-h-64 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-emerald-200"></pre>
@@ -589,8 +590,8 @@ def render_gui(lang: str = "") -> str:
     ----------
     lang : str
         Two-letter language code. Anything outside the locale file's
-        ``meta.supported_locales`` — including the empty string — falls back
-        to ``meta.default_locale``, so an unknown ``?lang=`` never 500s.
+        a compiled catalogue — including the empty string — falls back to
+        :data:`_DEFAULT_LANGUAGE`, so an unknown ``?lang=`` never 500s.
 
     Returns
     -------
@@ -604,21 +605,36 @@ def render_gui(lang: str = "") -> str:
     >>> render_gui("tlh") == render_gui(default_language())
     True
     """
-    resolved = lang if lang in supported_languages() else default_language()
-    loc = _locales()
+    cat = _catalog()
+    resolved = cat.resolve(lang)
+    translate = cat.translator_for(resolved).gettext
 
-    page = _GUI_TEMPLATE.replace("{{LANG}}", html.escape(resolved, quote=True))
-    for token, key in _HTML_TOKEN_TO_KEY.items():
-        # Escape every value: these land in attributes (title, aria, value,
-        # href) as readily as in text nodes, and a stray quote would break out
-        # of the attribute it sits in.
-        value = html.escape(loc.text(_GUI_SECTION, key, resolved), quote=True)
-        page = page.replace("{{" + token + "}}", value)
+    # The other language, for the toggle. With two languages this is "the one
+    # that is not current"; with more it is the next one round, which keeps the
+    # flag a cycle rather than a dead end.
+    languages = cat.languages
+    other = languages[(languages.index(resolved) + 1) % len(languages)]
+
+    def _render_source(match: re.Match[str]) -> str:
+        """Translate one ``{{_("…")}}`` site and escape it for HTML.
+
+        Escaping is not optional: these land in attributes (placeholder, alt,
+        aria, title) as readily as in text nodes, and a French apostrophe in an
+        attribute would close it early.
+        """
+        return html.escape(translate(match.group(1)), quote=True)
+
+    page = _SOURCE_RE.sub(_render_source, _GUI_TEMPLATE)
+    page = page.replace("{{LANG}}", html.escape(resolved, quote=True))
+    page = page.replace("{{LANG_HREF}}", html.escape(f"/gui?lang={other}", quote=True))
+    page = page.replace("{{LANG_FLAG}}", _FLAGS.get(other, other.upper()))
+    page = page.replace("{{LANG_ARIA}}", html.escape(_ENDONYMS.get(other, other), quote=True))
 
     # The script's strings go in as JSON rather than as substituted text: it is
     # the encoding that cannot be broken out of by an apostrophe, and French
     # copy is full of them.
-    table = {name: loc.text(_GUI_SECTION, key, resolved) for name, key in _JS_NAME_TO_KEY.items()}
+    table = {name: translate(source) for name, source in _JS_NAME_TO_SOURCE.items()}
+    table.update(_JS_INVARIANTS)
     return page.replace("{{T_JSON}}", json.dumps(table, ensure_ascii=False))
 
 

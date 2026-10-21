@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "capture-helper"
-version = "1.4.0"
+version = "1.5.0"
 description = "Capture Helper — local-first, library-shaped camera / microphone capture layer for the AI Helpers stack, with a live multi-source scene configurator GUI. Multi-surface: library + argparse CLI + click CLI + FastAPI HTTP surface (+ browser GUI at /gui)."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -27,7 +27,7 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
 ]
 dependencies = [
-    "os-helper>=2.4.0,<3",
+    "os-helper>=2.6.0,<3",
     # numpy is needed by camera (frame reshape) and mic (PCM reshape).
     # Lower bound matches the rest of the suite; no upper pin for now.
     "numpy>=1.23",
@@ -90,7 +90,7 @@ exclude = ["tests*", "assets*"]
 # root. best-engine declared five data files beside its package and published
 # wheels that contained none of them.
 [tool.setuptools.package-data]
-"capture_helper" = ["locales/*.yaml"]
+"capture_helper" = ["locales/*/LC_MESSAGES/*.po", "locales/*/LC_MESSAGES/*.mo"]
 
 [tool.ruff]
 line-length = 100
