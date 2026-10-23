@@ -174,7 +174,7 @@ docker compose up --build
 La **GUI** à `/gui` est le configurateur de scène multi-sources en direct : elle énumère vos caméras et micros, prévisualise chaque caméra en direct (MJPEG) et chaque micro (vumètre), vous laisse les arranger sur un canevas, puis enregistre le tout comme un `.scene.json` réutilisable que la CLI ou l'API rejoue. Voir [📋 GUI.md](https://github.com/warith-harchaoui/capture-helper/blob/main/GUI.md).
 
 La page parle **français et anglais**. `GET /gui?lang=fr|en` choisit la langue,
-un drapeau dans l'en-tête bascule de l'une à l'autre, et un code que le fichier
+un drapeau dans l'en-tête bascule de l'une à l'autre et un code que le fichier
 de locales ne porte pas retombe sur la langue par défaut au lieu d'échouer.
 Toutes les chaînes vivent dans
 [`capture_helper/locales/fr/LC_MESSAGES/capture_helper.po`](https://github.com/warith-harchaoui/capture-helper/blob/main/capture_helper/locales/fr/LC_MESSAGES/capture_helper.po),
