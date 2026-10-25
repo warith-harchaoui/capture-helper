@@ -100,7 +100,6 @@ You still need `ffmpeg` on PATH for device enumeration and live capture to retur
 pip install capture-helper
 
 # Optional surfaces
-pip install "capture-helper[cli]"       # click-based CLI twin
 pip install "capture-helper[api]"       # FastAPI HTTP surface
 ```
 
@@ -112,7 +111,6 @@ cd capture-helper
 pip install -e .
 
 # Optional surfaces
-pip install -e ".[cli]"
 pip install -e ".[api]"
 ```
 
@@ -135,22 +133,18 @@ For a full cookbook (per-OS ffmpeg input strings, snapshot capture, live preview
 | Surface | Install | Entry point | Use case |
 | --- | --- | --- | --- |
 | **Python library** | `pip install capture-helper` | `import capture_helper as ch` | Notebooks, scripts, other AI Helpers |
-| **argparse CLI** | *(no extra)* | `capture-helper …` | Shells, cron, CI, container CMD |
-| **click CLI** | `[cli]` extra | `capture-helper-click …` | Users on a click-native stack (completion, colored `--help`) |
+| **CLI** | *(no extra)* | `capture-helper …` | Shells, cron, CI, container CMD |
 | **FastAPI HTTP** | `[api]` extra | `uvicorn capture_helper.api:app` | Reverse-proxied service, JSON / multipart clients |
 | **Browser GUI** | `[api]` extra | `GET /gui` | Live multi-source scene configurator (preview + arrange + save) |
 | **MCP** | `[mcp]` extra | `capture-helper-mcp` | Any MCP-aware agent host (same FastAPI app, `/mcp` endpoint) |
 
 ```bash
-# CLI (argparse, always available)
+# CLI
 capture-helper list-sources
 capture-helper pick-source --kind camera --name FaceTime
 capture-helper capture-mic --output mic.wav --seconds 3
 capture-helper stream-mic | my-live-consumer   # raw f32le PCM, unbounded
-
-# CLI (click twin, same subcommands)
-capture-helper-click list-sources
-capture-helper-click capture-camera --output-dir frames/ \
+capture-helper capture-camera --output-dir frames/ \
     --output-width 640 --output-height 360 --max-frames 30
 
 # HTTP surface

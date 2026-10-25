@@ -29,9 +29,9 @@ a live device has no end-of-file.
 
 Logging and file management route through `os_helper` — the suite convention.
 
-## 2. CLIs — argparse (core) and click (`[cli]`)
+## 2. CLI — click (core)
 
-`capture-helper` and `capture-helper-click`. See `cli-reference.md`.
+`capture-helper`. See `cli-reference.md`.
 
 ## 3. HTTP API — FastAPI (`[api]`)
 

@@ -1,7 +1,7 @@
 # capture-helper CLI reference
 
-Two CLIs over the same operations. `capture-helper` (argparse) ships with the
-core package; `capture-helper-click` (needs `[cli]`) is the click twin with the
+One CLI, `capture-helper`, built with click and shipped with the core package,
+over the same operations the library and the HTTP surface expose, with the
 same subcommands and flags.
 
 ## Device discovery

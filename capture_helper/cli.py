@@ -1,12 +1,12 @@
 """
 Capture Helper — click-based command-line interface.
 
-Twin of :mod:`capture_helper.cli_argparse`: same public surface
+The one command-line surface: same operations as the library
 (identical subcommand names, identical flag semantics), but implemented
 with :mod:`click` so users who already have a click-native shell setup
 (bash / zsh completion via ``click.shell_completion``, colored ``--help``,
 nested command groups) can plug it in without friction. Installed as
-the ``capture-helper-click`` entry point in ``pyproject.toml``.
+the ``capture-helper`` entry point in ``pyproject.toml``.
 
 Design notes
 ------------
@@ -23,12 +23,12 @@ Design notes
 
 Usage Example
 -------------
->>> #   capture-helper-click list-sources
->>> #   capture-helper-click pick-source --kind camera --name FaceTime
->>> #   capture-helper-click input-args --kind microphone --index 0
->>> #   capture-helper-click capture-camera --output-dir frames/ \\
+>>> #   capture-helper list-sources
+>>> #   capture-helper pick-source --kind camera --name FaceTime
+>>> #   capture-helper input-args --kind microphone --index 0
+>>> #   capture-helper capture-camera --output-dir frames/ \\
 >>> #       --output-width 640 --output-height 360 --max-frames 30
->>> #   capture-helper-click capture-mic --output mic.wav --seconds 3
+>>> #   capture-helper capture-mic --output mic.wav --seconds 3
 
 Author
 ------
@@ -43,14 +43,8 @@ import sys
 import wave
 from pathlib import Path
 
+import click
 import numpy as np
-
-try:
-    import click
-except ImportError as exc:  # pragma: no cover
-    raise ImportError(
-        "The click CLI requires the [cli] extra. Install with: pip install 'capture-helper[cli]'"
-    ) from exc
 
 # Same underlying functions as the argparse twin — one source of truth.
 from . import (
@@ -78,9 +72,10 @@ from .scene import load_scene
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 100},
 )
-@click.version_option(package_name="capture-helper", prog_name="capture-helper-click")
+# ``-V`` beside ``--version``, as the argparse door offered.
+@click.version_option(None, "-V", "--version", prog_name="capture-helper")
 def cli() -> None:
-    """Capture Helper — click twin of the argparse CLI. Same subcommands."""
+    """Capture Helper — cameras and microphones from the shell."""
     # Nothing to do at the group level — every subcommand carries its
     # own arguments and side effects.
 
@@ -441,7 +436,7 @@ def scene_show_cmd(input_: str) -> None:
 
 
 def main() -> None:
-    """Console entry point (``capture-helper-click``).
+    """Console entry point (``capture-helper``).
 
     Click's own error handling only special-cases ``ClickException``/
     ``Abort`` (and a broken pipe) — a plain library exception (e.g. from

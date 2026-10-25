@@ -11,7 +11,7 @@ description: >-
   says "list my cameras / microphones", "which webcam / input device do I
   have", "take a snapshot from the webcam", "record from the mic", "live
   preview", "capture from my camera", "mic level / VU meter", "build a scene
-  with two cameras", or names `capture-helper`, `capture-helper-click`,
+  with two cameras", or names `capture-helper`,
   `capture-helper-mcp`, `import capture_helper as ch`. Do NOT use to process an
   existing file (video-helper / audio-helper), transcribe speech
   (vocal-helper), or download media (youtube-helper).
@@ -43,7 +43,7 @@ of some other task, and never leave one running after the task is done.
 ## Before anything: verify it is installed
 
 ```bash
-capture-helper list-sources         # argparse CLI + proves device access works
+capture-helper list-sources         # the CLI + proves device access works
 python -c "import capture_helper"   # library import check
 ffmpeg -version                     # hard system dependency
 ```
@@ -51,8 +51,7 @@ ffmpeg -version                     # hard system dependency
 Install:
 
 ```bash
-pip install capture-helper                 # core: iterators + argparse CLI
-pip install 'capture-helper[cli]'          # + the click twin
+pip install capture-helper                 # core: iterators + click CLI
 pip install 'capture-helper[api]'          # + FastAPI HTTP surface and scene GUI
 pip install 'capture-helper[mcp]'          # + MCP tools over the same app
 ```

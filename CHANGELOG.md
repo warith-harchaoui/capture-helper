@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-25
+
+### Changed
+- **One command line, built with click.** `capture-helper` now runs the click
+  implementation; the argparse CLI and the `capture-helper-click` twin are gone,
+  with the `[cli]` extra. `click` is a core dependency, the CLI no longer being
+  optional.
+
+  Parity was verified before the removal by introspecting the `ArgumentParser`
+  and `click.Group` objects rather than diffing help text: both doors agreed on
+  all nine subcommands and every flag.
+
+- `cli_click.py` is now `cli.py`; `cli_argparse.py` is deleted, and the module
+  no longer guards `import click` behind a try/except install hint.
+- `os-helper` cap widened to `<4` (os-helper 3.0.0 dropped its own CLI).
+
+### Fixed
+- `--help` described the tool as the "click twin of the argparse CLI" — a
+  layout that no longer exists. It now says what the tool does.
+- `-V` had no short form, though the argparse door offered one.
+
+### Tests
+`tests/test_cli.py` drops the duplicated argparse half, but **three cases lived
+only on that side** and were carried over rather than deleted: `stream-mic`
+writing exact raw f32le bytes to stdout, its exit-2 path when no audio arrives,
+and the `scene-auto` → `scene-validate` round-trip through a written file. They
+were the coverage; the rest was duplication.
+
+### Migration
+`capture-helper-click <verb>` becomes `capture-helper <verb>` — same verbs, same
+flags. `pip install "capture-helper[cli]"` fails on the unknown extra; plain
+`pip install capture-helper` carries the CLI.
+
 ## [1.5.0] - 2026-10-21
 
 ### Changed

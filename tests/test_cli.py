@@ -1,10 +1,17 @@
 """
-Smoke tests for the argparse and click CLIs.
+Smoke tests for the command line — one door now, built with click.
 
-These tests exercise the CLI *parsing* layer without touching real
-capture devices — the goal is to prevent regressions in the entry
-points (flag names, subcommand names, dispatch wiring) without
-pulling in ffmpeg or the OS permission stack.
+These exercise the CLI *parsing* layer without touching real capture
+devices: the goal is to catch regressions in the entry point (flag
+names, subcommand names, dispatch wiring) without pulling in ffmpeg or
+the OS permission stack.
+
+There used to be two CLIs — argparse plus an optional click twin — with
+most scenarios written twice so the pair could be checked for drift. The
+twin is the only CLI now, so each scenario is asserted once. The three
+cases that existed *only* on the argparse side (raw-PCM `stream-mic`, its
+exit-2 path, and the scene save/validate round-trip) were carried over
+rather than dropped: they were the real coverage, not the duplication.
 
 Usage Example
 -------------
@@ -21,197 +28,66 @@ import json
 import sys
 
 import pytest
+from click.testing import CliRunner
 
-# The click CLI needs the ``click`` runtime dep, which lives in the
-# ``[cli]`` optional extra. Skip cleanly if it is not installed.
-click = pytest.importorskip("click")
+from capture_helper import cli as cli_mod
 
-from click.testing import CliRunner  # noqa: E402
-
-# ---------------------------------------------------------------------------
-# argparse CLI
-# ---------------------------------------------------------------------------
-
-
-def test_argparse_parser_builds_without_error():
-    """Building the parser should never fail (imports, subcommand wiring)."""
-    from capture_helper.cli_argparse import build_parser
-
-    parser = build_parser()
-    # A parser with at least one subcommand exposes them via _subparsers.
-    # We assert on the expected list of subcommand names to catch drift.
-    subparsers_action = next(
-        a for a in parser._actions if a.__class__.__name__ == "_SubParsersAction"
-    )
-    expected = {
-        "list-sources",
-        "pick-source",
-        "input-args",
-        "capture-camera",
-        "capture-mic",
-        "stream-mic",
-        "scene-auto",
-        "scene-validate",
-        "scene-show",
-    }
-    assert expected.issubset(set(subparsers_action.choices.keys()))
+# Every verb the CLI must expose. Kept as a module-level constant so one
+# quietly disappearing fails here rather than in a user's shell.
+SUBCOMMANDS = [
+    "list-sources",
+    "pick-source",
+    "input-args",
+    "capture-camera",
+    "capture-mic",
+    "stream-mic",
+    "scene-auto",
+    "scene-validate",
+    "scene-show",
+]
 
 
-def test_argparse_help_exits_zero(capsys):
-    """``capture-helper --help`` should exit with code 0 and print usage."""
-    from capture_helper.cli_argparse import main
-
-    with pytest.raises(SystemExit) as exc:
-        main(["--help"])
-    assert exc.value.code == 0
-    captured = capsys.readouterr()
-    assert "capture-helper" in captured.out.lower()
+def test_group_has_expected_subcommands():
+    """The click group exposes every verb the library promises."""
+    assert set(SUBCOMMANDS).issubset(set(cli_mod.cli.commands.keys()))
 
 
-@pytest.mark.parametrize(
-    "sub",
-    [
-        "list-sources",
-        "pick-source",
-        "input-args",
-        "capture-camera",
-        "capture-mic",
-        "stream-mic",
-        "scene-auto",
-        "scene-validate",
-        "scene-show",
-    ],
-)
-def test_argparse_subcommand_help_exits_zero(sub):
-    """Every subcommand's ``--help`` should exit 0 (no wiring bug)."""
-    from capture_helper.cli_argparse import main
-
-    with pytest.raises(SystemExit) as exc:
-        main([sub, "--help"])
-    assert exc.value.code == 0
-
-
-def test_argparse_list_sources_runs_and_emits_json(capsys):
-    """``capture-helper list-sources`` should print a JSON array — smoke only.
-
-    On CI we don't know what devices exist; ``list_sources`` is
-    guaranteed to return ``[]`` rather than raise on unsupported
-    platforms. Either way stdout must parse as a list.
-    """
-    from capture_helper.cli_argparse import main
-
-    rc = main(["list-sources"])
-    assert rc == 0
-    captured = capsys.readouterr()
-    parsed = json.loads(captured.out)
-    assert isinstance(parsed, list)
-
-
-def test_argparse_library_error_prints_clean_message_not_traceback(monkeypatch, capsys):
-    """A library ``ValueError`` must exit 1 with one clean line, not a raw traceback.
-
-    ``main()``'s dispatch used to call ``args.func(args)`` unguarded, so
-    ``pick_source``'s documented ``ValueError`` (no device matches) would
-    propagate as a full Python traceback instead of a clean CLI error.
-    """
-    from capture_helper import cli_argparse
-
-    def _raise(*_a, **_kw):
-        raise ValueError("No camera devices available")
-
-    monkeypatch.setattr(cli_argparse, "pick_source", _raise)
-    rc = cli_argparse.main(["pick-source", "--kind", "camera"])
-    assert rc == 1
-    captured = capsys.readouterr()
-    assert captured.out == ""
-    assert captured.err.strip() == "Error: No camera devices available"
-    assert "Traceback" not in captured.err
-
-
-# ---------------------------------------------------------------------------
-# click CLI
-# ---------------------------------------------------------------------------
-
-
-def test_click_group_has_expected_subcommands():
-    """The click group must expose the same subcommands as the argparse CLI."""
-    from capture_helper.cli_click import cli
-
-    expected = {
-        "list-sources",
-        "pick-source",
-        "input-args",
-        "capture-camera",
-        "capture-mic",
-        "stream-mic",
-        "scene-auto",
-        "scene-validate",
-        "scene-show",
-    }
-    assert expected.issubset(set(cli.commands.keys()))
-
-
-def test_click_help_exits_zero():
-    """``capture-helper-click --help`` should exit 0."""
-    from capture_helper.cli_click import cli
-
-    runner = CliRunner()
-    result = runner.invoke(cli, ["--help"])
+def test_help_exits_zero():
+    """``capture-helper --help`` exits 0 and names itself."""
+    result = CliRunner().invoke(cli_mod.cli, ["--help"])
     assert result.exit_code == 0
     assert "capture helper" in result.output.lower()
 
 
-@pytest.mark.parametrize(
-    "sub",
-    [
-        "list-sources",
-        "pick-source",
-        "input-args",
-        "capture-camera",
-        "capture-mic",
-        "stream-mic",
-        "scene-auto",
-        "scene-validate",
-        "scene-show",
-    ],
-)
-def test_click_subcommand_help_exits_zero(sub):
-    """Every click subcommand's ``--help`` should exit 0."""
-    from capture_helper.cli_click import cli
-
-    runner = CliRunner()
-    result = runner.invoke(cli, [sub, "--help"])
+@pytest.mark.parametrize("sub", SUBCOMMANDS)
+def test_subcommand_help_exits_zero(sub):
+    """Every subcommand's ``--help`` exits 0 — no wiring bug."""
+    result = CliRunner().invoke(cli_mod.cli, [sub, "--help"])
     assert result.exit_code == 0
 
 
-def test_click_list_sources_runs_and_emits_json():
-    """``capture-helper-click list-sources`` should emit a JSON array."""
-    from capture_helper.cli_click import cli
-
-    runner = CliRunner()
-    result = runner.invoke(cli, ["list-sources"])
+def test_list_sources_runs_and_emits_json():
+    """``capture-helper list-sources`` emits a JSON array."""
+    result = CliRunner().invoke(cli_mod.cli, ["list-sources"])
     assert result.exit_code == 0
-    parsed = json.loads(result.output)
-    assert isinstance(parsed, list)
+    assert isinstance(json.loads(result.output), list)
 
 
-def test_click_main_library_error_prints_clean_message_not_traceback(monkeypatch, capsys):
-    """``main()`` (the ``capture-helper-click`` console-script target) must
-    turn a library ``ValueError`` into one clean stderr line + exit 1, not a
-    raw traceback. Exercises ``main()`` itself (not ``cli`` via
-    ``CliRunner``), since that's the wrapper the fix lives in — the
-    ``capture-helper-click`` entry point used to point at the bare ``cli``
-    group, which has no such handling of its own.
+def test_main_library_error_prints_clean_message_not_traceback(monkeypatch, capsys):
+    """A library ``ValueError`` becomes one stderr line + exit 1, not a traceback.
+
+    Drives ``main()`` rather than ``cli`` through ``CliRunner``, because
+    ``main()`` is the wrapper that does the translating — the console script
+    used to point at the bare ``cli`` group, which has no such handling.
     """
-    from capture_helper import cli_click
 
     def _raise(*_a, **_kw):
         raise ValueError("No camera devices available")
 
-    monkeypatch.setattr(cli_click, "pick_source", _raise)
-    monkeypatch.setattr(sys, "argv", ["capture-helper-click", "pick-source", "--kind", "camera"])
+    monkeypatch.setattr(cli_mod, "pick_source", _raise)
+    monkeypatch.setattr(sys, "argv", ["capture-helper", "pick-source", "--kind", "camera"])
     with pytest.raises(SystemExit) as excinfo:
-        cli_click.main()
+        cli_mod.main()
     assert excinfo.value.code == 1
     captured = capsys.readouterr()
     assert captured.err.strip() == "Error: No camera devices available"
@@ -236,37 +112,47 @@ def _fake_frames(pcm_arrays):
     return _gen
 
 
-def test_argparse_stream_mic_writes_raw_pcm_to_stdout(monkeypatch, capsysbinary):
-    """``stream-mic`` must write exactly the concatenated raw f32le bytes,
-    with no WAV header and no text interleaved on stdout."""
+def _run_argv(monkeypatch, argv):
+    """Drive ``main()`` the way the console script does, and return its code.
+
+    ``CliRunner`` captures stdout as text, which would corrupt the raw PCM
+    these two tests assert on, so they go through ``main()`` with a patched
+    ``sys.argv`` and read the real binary stream back with ``capsysbinary``.
+    """
+    monkeypatch.setattr(sys, "argv", ["capture-helper", *argv])
+    try:
+        cli_mod.main()
+    except SystemExit as exc:  # click and the subcommands both exit this way
+        return int(exc.code or 0)
+    return 0
+
+
+def test_stream_mic_writes_raw_pcm_to_stdout(monkeypatch, capsysbinary):
+    """``stream-mic`` writes exactly the concatenated raw f32le bytes.
+
+    No WAV header, no text interleaved on stdout — a consumer reads the pipe
+    as a byte stream, so one stray print would corrupt the audio.
+    """
     import numpy as np
 
-    from capture_helper import cli_argparse
+    frames = [
+        np.array([0.1, -0.2, 0.3], dtype=np.float32),
+        np.array([0.4, 0.5], dtype=np.float32),
+    ]
+    monkeypatch.setattr(cli_mod, "iter_mic_audio", _fake_frames(frames))
+    monkeypatch.setattr(cli_mod, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0})
 
-    frames = [np.array([0.1, -0.2, 0.3], dtype=np.float32), np.array([0.4, 0.5], dtype=np.float32)]
-    monkeypatch.setattr(cli_argparse, "iter_mic_audio", _fake_frames(frames))
-    monkeypatch.setattr(
-        cli_argparse, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0}
-    )
-
-    rc = cli_argparse.main(["stream-mic", "--seconds", "1"])
-    assert rc == 0
+    assert _run_argv(monkeypatch, ["stream-mic", "--seconds", "1"]) == 0
     out = capsysbinary.readouterr().out
-    expected = np.concatenate(frames).astype(np.float32).tobytes()
-    assert out == expected
+    assert out == np.concatenate(frames).astype(np.float32).tobytes()
 
 
-def test_argparse_stream_mic_no_frames_exits_2(monkeypatch, capsysbinary):
-    """No captured audio (e.g. permission denial) must exit 2, not crash."""
-    from capture_helper import cli_argparse
+def test_stream_mic_no_frames_exits_2(monkeypatch, capsysbinary):
+    """No captured audio (e.g. a permission denial) exits 2 rather than crashing."""
+    monkeypatch.setattr(cli_mod, "iter_mic_audio", _fake_frames([]))
+    monkeypatch.setattr(cli_mod, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0})
 
-    monkeypatch.setattr(cli_argparse, "iter_mic_audio", _fake_frames([]))
-    monkeypatch.setattr(
-        cli_argparse, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0}
-    )
-
-    rc = cli_argparse.main(["stream-mic", "--seconds", "1"])
-    assert rc == 2
+    assert _run_argv(monkeypatch, ["stream-mic", "--seconds", "1"]) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -274,28 +160,23 @@ def test_argparse_stream_mic_no_frames_exits_2(monkeypatch, capsysbinary):
 # ---------------------------------------------------------------------------
 
 
-def test_argparse_scene_auto_and_validate_round_trip(tmp_path, capsys):
+def test_scene_auto_and_validate_round_trip(tmp_path):
     """``scene-auto --output`` writes a file that ``scene-validate`` accepts."""
-    from capture_helper.cli_argparse import main
-
+    runner = CliRunner()
     out = tmp_path / "auto.scene.json"
     # Auto-populate to a file (empty of sources on a headless CI runner).
-    rc = main(["scene-auto", "--name", "ci", "--output", str(out)])
-    assert rc == 0
+    written = runner.invoke(cli_mod.cli, ["scene-auto", "--name", "ci", "--output", str(out)])
+    assert written.exit_code == 0, written.output
     assert out.exists()
     # Validation of the just-written artifact must pass.
-    rc2 = main(["scene-validate", "--input", str(out)])
-    assert rc2 == 0
-    captured = capsys.readouterr()
-    assert "valid scene" in captured.out
+    checked = runner.invoke(cli_mod.cli, ["scene-validate", "--input", str(out)])
+    assert checked.exit_code == 0, checked.output
+    assert "valid scene" in checked.output
 
 
-def test_click_scene_auto_emits_valid_json(tmp_path):
-    """The click ``scene-auto`` (stdout mode) emits a well-formed scene."""
-    from capture_helper.cli_click import cli
-
-    runner = CliRunner()
-    result = runner.invoke(cli, ["scene-auto", "--name", "ci"])
+def test_scene_auto_emits_valid_json():
+    """``scene-auto`` in stdout mode emits a well-formed scene."""
+    result = CliRunner().invoke(cli_mod.cli, ["scene-auto", "--name", "ci"])
     assert result.exit_code == 0
     scene = json.loads(result.output)
     assert scene["name"] == "ci"

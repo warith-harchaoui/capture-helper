@@ -27,7 +27,7 @@ transcribe, or broadcast out.
 | Resolve a scene here | `capture-helper scene-show` | `resolve_scene_sources` | n/a |
 | Save / load a scene | (`scene-auto --output`) | `save_scene` / `load_scene` | `POST /scene/save` · `POST /scene/load` |
 
-Everything is also reachable through the click CLI (`capture-helper-click …`,
+Everything is also reachable through the CLI (`capture-helper …`,
 same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 
 ## Natural-language phrasings that should fire
@@ -67,7 +67,7 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 
 ## Command / function / driver reference
 
-- Commands: `capture-helper`, `capture-helper-click`.
+- Commands: `capture-helper`.
 - Subcommands: `list-sources pick-source input-args capture-camera capture-mic
   stream-mic scene-auto scene-validate scene-show`.
 - Functions: `list_sources pick_source ffmpeg_input_args iter_camera_frames
