@@ -94,3 +94,26 @@ portable.
   willing to write the reshape / plumbing yourself.
 - **GStreamer + PyGObject**: Linux-first low-latency pipelines with
   RTMP / HLS out of the box, heavier to install, less portable.
+
+## Sources and as-of date
+
+The stars are a judgement of **fit to this niche**, not a benchmark: nothing
+here was timed, and no throughput figure is claimed. What was checked is the
+*capability* behind each column — which project enumerates devices, which hands
+back a numpy array, which has a microphone path at all — against each project's
+own documentation, on **2026-10-27**. Capture APIs move slowly, but one project
+adding a microphone gear or an enumeration call would make a row of this table
+wrong about someone else, so the date is part of the claim.
+
+- [OpenCV `videoio` module](https://github.com/opencv/opencv/tree/4.x/modules/videoio) — the `VideoCapture` backends; cameras are addressed by bare index, with no enumeration entry point
+- [PyAV documentation](https://pyav.org/docs/stable/) — the libav bindings, device input included
+- [python-sounddevice documentation](https://python-sounddevice.readthedocs.io/) — PortAudio-backed, audio only, callback-oriented
+- [PyAudio documentation](https://people.csail.mit.edu/hubert/pyaudio/docs/) — PortAudio-backed, audio only, blocking reads
+- [python-mss documentation](https://python-mss.readthedocs.io/) — screen only; no camera, no audio
+- [VidGear gears](https://abhitronix.github.io/vidgear/latest/gears/) — the full gear list, which is where "no microphone path" comes from
+- [obs-websocket](https://github.com/obsproject/obs-websocket) — the scripting surface OBS Studio exposes, and what it does (and does not) hand back
+- [FFmpeg device documentation](https://ffmpeg.org/ffmpeg-devices.html) — `avfoundation` / `dshow` / `v4l2` / `pulse` / `alsa`, and the `-list_devices` flag this package shells out to
+- [GStreamer Python bindings](https://gstreamer.freedesktop.org/bindings/python.html) — PyGObject, the install this table calls heavier
+
+`capture-helper`'s own row is not sourced from a document: it is read off the
+code in this repository, at the version in `pyproject.toml`.

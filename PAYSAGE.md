@@ -102,3 +102,27 @@ prêts à l'emploi, plus lourd à installer et moins portable.
 - **GStreamer + PyGObject** : pipelines Linux-first à faible latence
   avec RTMP / HLS prêts à l'emploi, plus lourd à installer, moins
   portable.
+
+## Sources et date de relevé
+
+Les étoiles jugent l'**adéquation à ce créneau**, elles ne mesurent rien :
+aucun chronométrage n'a été fait et aucun débit n'est avancé. Ce qui a été
+vérifié, c'est la *capacité* derrière chaque colonne — quel projet énumère les
+périphériques, lequel renvoie un tableau numpy, lequel possède un chemin
+microphone — face à la documentation de chaque projet, le **2026-10-27**. Les
+API de capture bougent lentement, mais il suffirait qu'un projet ajoute un gear
+microphone ou un appel d'énumération pour qu'une ligne de ce tableau se trompe
+au sujet d'autrui : la date fait donc partie de l'affirmation.
+
+- [Module `videoio` d'OpenCV](https://github.com/opencv/opencv/tree/4.x/modules/videoio) — les backends de `VideoCapture` ; les caméras s'adressent par simple index, sans point d'entrée d'énumération
+- [Documentation de PyAV](https://pyav.org/docs/stable/) — les liaisons libav, entrées périphériques comprises
+- [Documentation de python-sounddevice](https://python-sounddevice.readthedocs.io/) — adossée à PortAudio, audio seulement, orientée callback
+- [Documentation de PyAudio](https://people.csail.mit.edu/hubert/pyaudio/docs/) — adossée à PortAudio, audio seulement, lectures bloquantes
+- [Documentation de python-mss](https://python-mss.readthedocs.io/) — écran seulement : ni caméra ni audio
+- [Les gears de VidGear](https://abhitronix.github.io/vidgear/latest/gears/) — la liste complète des gears, d'où vient le « aucun chemin microphone »
+- [obs-websocket](https://github.com/obsproject/obs-websocket) — la surface de scriptage qu'expose OBS Studio, avec ce qu'elle rend et ce qu'elle ne rend pas
+- [Documentation des périphériques FFmpeg](https://ffmpeg.org/ffmpeg-devices.html) — `avfoundation`, `dshow`, `v4l2`, `pulse`, `alsa` et le drapeau `-list_devices` que ce paquet appelle en sous-main
+- [Liaisons Python de GStreamer](https://gstreamer.freedesktop.org/bindings/python.html) — PyGObject, l'installation que ce tableau qualifie de plus lourde
+
+La ligne de `capture-helper` ne vient d'aucun document : elle se lit dans le
+code de ce dépôt, à la version inscrite dans `pyproject.toml`.

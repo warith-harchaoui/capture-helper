@@ -59,7 +59,7 @@ import capture_helper as ch
 for s in ch.list_sources():
     print(f"{s['kind']:10s} [{s['index']}] {s['name']:40s} (driver={s['driver']})")
     # camera     [0] FaceTime HD Camera                       (driver=avfoundation)
-    # microphone [0] Built-in Microphone                      (driver=avfoundation)
+    # microphone [1] MacBook Pro Microphone                   (driver=avfoundation)
 
 # Caméra → frames numpy BGR (compatible avec video_helper.extract_frames)
 cam = ch.pick_source("camera")
@@ -83,11 +83,11 @@ asyncio.run(listen())
 
 ## Installation
 
-**Prérequis** : **Python 3.10-3.13**, **git**, **ffmpeg**, **PortAudio**, multiplateforme :
+**Prérequis** : **Python 3.10-3.13**, **git** et **ffmpeg**, multiplateforme :
 
-- 🍎 **macOS** ([Homebrew](https://brew.sh)) : `brew install python git ffmpeg portaudio`
-- 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg portaudio19-dev`
-- 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg` (PortAudio est inclus dans les wheels Python)
+- 🍎 **macOS** ([Homebrew](https://brew.sh)) : `brew install python git ffmpeg`
+- 🐧 **Ubuntu/Debian** : `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg`
+- 🪟 **Windows** (PowerShell) : `winget install Python.Python.3.12 Git.Git Gyan.FFmpeg`
 
 Nous recommandons de travailler dans un environnement Python dédié. Si vous ne savez pas encore comment en créer un : [🥸 Astuces techniques](https://deraison.ai/4ml/#install).
 
@@ -114,21 +114,68 @@ pip install -e .
 pip install -e ".[api]"
 ```
 
+## Prise en main rapide
+
+Le chemin utile le plus court : trouver un périphérique, lire ses images.
+Aucune scène, aucun navigateur, aucune installation supplémentaire.
+`list_sources` ne fait qu'appeler `ffmpeg -list_devices` : on peut donc
+l'invoquer sur une machine où rien n'est branché, elle renvoie `[]` au lieu de
+lever une exception.
+
+```python
+import capture_helper as ch
+
+for s in ch.list_sources():
+    print(f"{s['kind']:10s} [{s['index']}] {s['name']:40s} (driver={s['driver']})")
+# camera     [0] FaceTime HD Camera                       (driver=avfoundation)
+# microphone [1] MacBook Pro Microphone                   (driver=avfoundation)
+# (extrait : la machine utilisée pour ce relevé liste aussi deux périphériques
+#  Continuité et une entrée audio virtuelle)
+
+cam = ch.pick_source("camera", name_substring="FaceTime")
+for frame in ch.iter_camera_frames(cam, output_width=224, output_height=224, fps=30, max_frames=2):
+    print(frame.shape, frame.dtype)
+# (224, 224, 3) uint8
+# (224, 224, 3) uint8
+```
+
+Les deux mêmes étapes depuis le terminal :
+
+```bash
+capture-helper list-sources
+capture-helper capture-camera --output-dir frames/ \
+    --output-width 480 --output-height 270 --fps 30 --max-frames 3
+# frames/frame_000000.bgr24
+# frames/frame_000001.bgr24
+# frames/frame_000002.bgr24
+```
+
+**Passez `fps`.** Sur macOS, le pilote `avfoundation` se bloque au lieu
+d'échouer dès que la fréquence d'images reste libre ou vaut une valeur que le
+périphérique n'offre pas : un appel caméra sans `fps=` peut donc rester
+suspendu indéfiniment au lieu de lever une erreur. La section
+`## Dépannage` d'[EXEMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXEMPLES.md)
+détaille le diagnostic, dont la façon de lister les modes acceptés par un
+périphérique.
+
 ## Feuille de route
 
 | Version | Couche | Périmètre |
 |---|---|---|
 | v0.0.1 | Squelette INPUT | `list_sources` + types |
-| **v0.1.0** | INPUT | `pick_source(...)`, `iter_camera_frames(source, ...)`, `iter_mic_audio(source, ...)` ; compose avec les contrats de video-helper et podcast-helper |
-| **v0.3.0** (cette version) | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de prévisualisation en direct (JPEG / MJPEG caméra, niveau micro), configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
+| v0.1.0 | INPUT | `pick_source(...)`, `iter_camera_frames(source, ...)`, `iter_mic_audio(source, ...)` ; compose avec les contrats de video-helper et podcast-helper |
+| v0.3.0 | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de prévisualisation en direct (JPEG / MJPEG caméra, niveau micro), configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
+| v1.0.0 | Contrats gelés | Les contrats des itérateurs cessent d'être provisoires ; la CI devient une porte bloquante plutôt qu'un rapport |
+| v1.1.0 | MCP | L'app FastAPI réexposée en outils MCP (`capture-helper-mcp`, extra `[mcp]`) |
+| **v1.6.0** (version actuelle) | Une porte par surface | Une seule ligne de commande `click` remplace le couple argparse / click ; les chaînes de la GUI passent à un catalogue `gettext` |
 | **ensuite** | INPUT étendue | Capture d'écran ou de fenêtre ; chaîne de filtres de base (porte de bruit, gain, redimensionnement) |
 | **plus tard** | PROCESS | Mixeur multi-sources : `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, rejouant une scène enregistrée vers une sortie unique |
 
-Pour un cookbook complet (chaînes d'entrée ffmpeg par système d'exploitation, capture d'instantané, prévisualisation en direct, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXAMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXAMPLES.md). Pour le catalogue exhaustif de déclencheurs, voir [📋 TRIGGERS.md](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md).
+Pour un cookbook complet (chaînes d'entrée ffmpeg par système d'exploitation, capture d'instantané, prévisualisation en direct, sauvegarde et chargement de scène, câblage ASR / VAD), voir [📋 EXEMPLES.md](https://github.com/warith-harchaoui/capture-helper/blob/main/EXEMPLES.md). Pour le catalogue exhaustif de déclencheurs, voir [📋 TRIGGERS.md](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md).
 
 ## Exposition multi-surface
 
-`capture-helper` expose les mêmes capacités à travers **six surfaces**, pour se brancher là où vous travaillez déjà, sans réécriture.
+`capture-helper` expose les mêmes capacités à travers **cinq surfaces**, pour se brancher là où vous travaillez déjà, sans réécriture.
 
 | Surface | Installation | Point d'entrée | Cas d'usage |
 | --- | --- | --- | --- |
@@ -145,7 +192,7 @@ capture-helper pick-source --kind camera --name FaceTime
 capture-helper capture-mic --output mic.wav --seconds 3
 capture-helper stream-mic | mon-consommateur-live   # PCM f32le brut, illimité
 capture-helper capture-camera --output-dir frames/ \
-    --output-width 640 --output-height 360 --max-frames 30
+    --output-width 640 --output-height 360 --fps 30 --max-frames 30
 
 # Surface HTTP
 uvicorn capture_helper.api:app --host 0.0.0.0 --port 8000
