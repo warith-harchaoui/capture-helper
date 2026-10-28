@@ -71,7 +71,8 @@ dev = [
 ]
 
 [project.scripts]
-# argparse-based CLI — no runtime dep beyond stdlib + core package.
+# The click CLI — the only command line this package has. click is a core
+# dependency (see above), so this entry point needs no extra.
 capture-helper = "capture_helper.cli:main"
 # MCP server — install with [mcp] extra.
 capture-helper-mcp = "capture_helper.mcp:main"
