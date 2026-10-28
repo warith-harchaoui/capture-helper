@@ -81,6 +81,10 @@ async def listen():
 asyncio.run(listen())
 ```
 
+## How it works
+
+![How capture-helper works: the camera and the microphone, behind the same contract as the rest of the suite](https://raw.githubusercontent.com/warith-harchaoui/capture-helper/main/assets/diagrams/how-it-works.png)
+
 ## Installation
 
 **Prerequisites**: **Python 3.10-3.13**, **git** and **ffmpeg**, cross-platform:
