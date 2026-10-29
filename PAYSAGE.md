@@ -126,3 +126,15 @@ au sujet d'autrui : la date fait donc partie de l'affirmation.
 
 La ligne de `capture-helper` ne vient d'aucun document : elle se lit dans le
 code de ce dépôt, à la version inscrite dans `pyproject.toml`.
+
+## Idées à reprendre
+
+Étudié plutôt que deviné : ce que chaque voisin fait mieux, puis ce que cette bibliothèque devrait changer pour l'égaler. Rien ici n'est un engagement : c'est la liste de lecture dont part la version suivante.
+
+- **`sounddevice` — modes bloquant puis par rappel, avec la latence annoncée** — Il expose les deux styles de lecture puis laisse l'appelant nommer la latence voulue au lieu de la découvrir. Le jumeau Rust d'ici propose déjà des lectures bloquantes avec des lectures non bloquantes ; le côté Python devrait s'aligner, puis dire ce que coûte le tampon.
+
+- **Des files bornées avec un compteur de trames perdues — du propre jumeau Rust** — `capture-helper-rs` borne sa file à 256 trames puis compte ce qu'il refuse, parce qu'un consommateur plus lent qu'un micro ne rattrape jamais son retard, puis qu'une file non bornée transforme cela en fuite silencieuse. Le côté Python a la même physique sans encore le même compteur.
+
+- **`mss` — la capture d'écran comme source** — Les caméras avec les micros sont énumérés ici ; les écrans non. `mss` est la réponse rapide puis multiplateforme ; la capture d'écran est la source qu'on réclame le plus souvent ensuite.
+
+- **`GStreamer` — un pipeline que l'appelant décrit sous forme de chaîne** — Un graphe de capture exprimé de façon déclarative permet de construire une source que cette bibliothèque n'a jamais prévue, sans attendre une nouvelle API. C'est l'issue de secours qu'une bibliothèque étroite puis honnête devrait avoir.

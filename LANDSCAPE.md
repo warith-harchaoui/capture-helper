@@ -117,3 +117,15 @@ wrong about someone else, so the date is part of the claim.
 
 `capture-helper`'s own row is not sourced from a document: it is read off the
 code in this repository, at the version in `pyproject.toml`.
+
+## Ideas worth stealing
+
+Researched rather than guessed: what each neighbour does better, and what this library would have to change to match it. Nothing here is a commitment — it is the reading list the next version starts from.
+
+- **`sounddevice` — blocking and callback modes, with latency stated** — It exposes both reading styles and lets the caller name the latency they want rather than discovering it. The Rust twin here already offers blocking and non-blocking reads; the Python side should match, and say what the buffer costs.
+
+- **Bounded queues with a dropped-frame count — from this library's own Rust twin** — `capture-helper-rs` bounds its frame queue at 256 and counts what it refuses, because a consumer slower than a microphone never catches up and an unbounded queue turns that into a silent leak. The Python side has the same physics and not yet the same counter.
+
+- **`mss` — screen capture as a source** — Cameras and microphones are enumerated here; screens are not. `mss` is the fast, cross-platform answer, and screen capture is the source most often wanted next.
+
+- **`GStreamer` — a pipeline the caller can describe as a string** — A capture graph expressed declaratively lets someone build a source this library never anticipated without waiting for new API. It is the escape hatch a narrow, honest library should have.
