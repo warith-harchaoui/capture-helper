@@ -6,7 +6,18 @@
 
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
-Local-first library that turns a live camera or microphone into data the rest of the AI Helpers suite already knows how to consume, plus a browser GUI for arranging several such sources at once. A camera feed becomes a stream of ordinary images: `iter_camera_frames` yields one array per frame, a grid of pixel colors with a height, a width, and three color channels stored blue, then green, then red (the format OpenCV and the rest of this suite use, called BGR uint8), matching [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames`. A microphone feed becomes a stream of sound samples: `iter_mic_audio` yields `MicFrame`s, small chunks of raw audio measurements taken over time (the standard format is called pulse-code modulation, PCM for short), matching [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream`. Because both iterators speak the same shapes as their sibling packages, code written against a recorded video file or a downloaded podcast runs unchanged against a live camera or microphone. On top of that, the GUI lets you drag several live sources onto a canvas, preview them in the browser, and save the layout as a reusable JSON scene the CLI or API can replay later. The two iterators are the stable foundation; the scene configurator, added more recently, builds on top of them.
+Local-first library that turns a live camera or microphone into data the rest of the AI Helpers suite already knows how to consume, plus a browser GUI for arranging several such sources at once.
+
+The two iterators are the whole idea. Each emits exactly what its sibling package emits from a recorded file:
+
+| Live source | Iterator | What it yields | Identical to |
+|---|---|---|---|
+| Camera | `iter_camera_frames` | one array per frame: a grid of pixel colours, height × width × three channels stored blue, green, red — the `BGR uint8` format OpenCV and this suite use | [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames` |
+| Microphone | `iter_mic_audio` | `MicFrame` chunks: small blocks of raw audio measurements taken over time, in the standard pulse-code modulation (PCM) format | [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream` |
+
+That table is the payoff: because both iterators speak the shapes their siblings speak, code written against a recorded video file or a downloaded podcast runs unchanged against a live camera or microphone.
+
+The GUI sits on top. Drag several live sources onto a canvas, preview them in the browser, then save the layout as a reusable JSON scene the CLI or the API can replay later. The two iterators are the stable foundation; the scene configurator, added more recently, builds on them.
 
 [🌍 AI Helpers](https://deraison.ai/ai-helpers)
 

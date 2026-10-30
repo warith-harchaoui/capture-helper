@@ -6,7 +6,18 @@
 
 `Capture Helper` fait partie d'une collection de bibliothèques appelée `AI Helpers`, développée pour bâtir des applications d'intelligence artificielle.
 
-Bibliothèque local-first qui transforme une caméra ou un micro en direct en données que le reste de la suite AI Helpers sait déjà consommer, avec en plus une interface graphique dans le navigateur pour arranger plusieurs sources à la fois. Un flux caméra devient une suite d'images ordinaires : `iter_camera_frames` produit un tableau par image, une grille de couleurs de pixels avec une hauteur, une largeur et trois canaux de couleur rangés dans l'ordre bleu, vert, rouge (le format qu'utilisent OpenCV et le reste de la suite, appelé BGR uint8), identique à celui de `extract_frames` chez [video-helper](https://github.com/warith-harchaoui/video-helper). Un flux micro devient une suite d'échantillons sonores : `iter_mic_audio` produit des `MicFrame`, de petits blocs de mesures audio brutes prises dans le temps (le format standard s'appelle modulation par impulsions codées, PCM en abrégé), identiques à `extract_audio_stream` chez [podcast-helper](https://github.com/warith-harchaoui/podcast-helper). Les deux itérateurs parlant le même format que leurs pairs, un code écrit pour une vidéo enregistrée ou un podcast téléchargé tourne sans modification face à une caméra ou un micro en direct. En plus de cela, l'interface graphique permet de glisser plusieurs sources en direct sur un canevas, de les prévisualiser dans le navigateur, puis d'enregistrer l'agencement comme une scène JSON réutilisable que la CLI ou l'API rejoueront plus tard. Les deux itérateurs forment le socle stable ; le configurateur de scène, ajouté plus récemment, vient s'ajouter par-dessus.
+Bibliothèque local-first qui transforme une caméra ou un micro en direct en données que le reste de la suite AI Helpers sait déjà consommer, avec en plus une interface graphique dans le navigateur pour arranger plusieurs sources à la fois.
+
+Les deux itérateurs sont toute l'idée. Chacun produit exactement ce que produit sa brique jumelle à partir d'un fichier enregistré :
+
+| Source en direct | Itérateur | Ce qu'il produit | Identique à |
+|---|---|---|---|
+| Caméra | `iter_camera_frames` | un tableau par image : une grille de couleurs de pixels, hauteur × largeur × trois canaux rangés bleu, vert, rouge — le format `BGR uint8` qu'utilisent OpenCV puis le reste de la suite | `extract_frames` chez [video-helper](https://github.com/warith-harchaoui/video-helper) |
+| Micro | `iter_mic_audio` | des `MicFrame` : de petits blocs de mesures audio brutes prises dans le temps, au format standard de modulation par impulsions codées (PCM) | `extract_audio_stream` chez [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) |
+
+Ce tableau est tout le bénéfice : comme les deux itérateurs parlent les formes que parlent leurs jumelles, un code écrit pour un fichier vidéo enregistré ou pour un podcast téléchargé tourne sans modification sur une caméra ou un micro en direct.
+
+L'interface graphique se pose par-dessus. On glisse plusieurs sources en direct sur un canevas, on les prévisualise dans le navigateur, puis on enregistre la disposition comme une scène JSON réutilisable que la CLI ou l'API rejoueront plus tard. Les deux itérateurs sont le socle stable ; le configurateur de scènes, arrivé plus tard, s'appuie dessus.
 
 [🌍 AI Helpers](https://deraison.ai/ai-helpers)
 
