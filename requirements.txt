@@ -12,6 +12,7 @@
 # The os-helper pin is kept in lock-step with the release tag below.
 
 # --- Suite dependency -----------------------------------------------------
-os-helper>=1.5.0
+os-helper>=2.6.0,<5
 # --- Core runtime ---------------------------------------------------------
 numpy>=1.23
+click>=8.1,<9        # the CLI is click-built and not optional since the argparse door was dropped
