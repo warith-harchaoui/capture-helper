@@ -27,7 +27,9 @@ L'interface graphique se pose par-dessus. On glisse plusieurs sources en direct 
 
 **Local-first par conception.** capture-helper s'exécute entièrement sur votre machine : les données caméra et micro sont capturées et traitées en local, jamais envoyées vers un service tiers, sans télémétrie, sans compte, sans verrouillage cloud. Fait partie de la suite [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) : la souveraineté sur vos données grâce à l'open source local-first.
 
-**Éprouvé en production, pas un prototype.** Chaque changement passe par la même porte avant publication : la suite de tests complète et un passage de lint tournent en intégration continue (voir le badge CI ci-dessus). Seul un passage vert est tagué puis publié sur PyPI selon le versionnage sémantique. En aval, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) s'appuie sur le flux micro en direct de capture-helper pour alimenter son pipeline vocal en production : les itérateurs caméra et micro encaissent donc des charges réelles, pas seulement leurs propres tests.
+**Éprouvé en production, pas un prototype.** Chaque changement passe par la même porte avant publication : la suite de tests complète puis un passage de lint tournent en intégration continue (voir le badge CI ci-dessus). Seul un passage vert est tagué puis publié sur PyPI selon le versionnage sémantique.
+
+En aval, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) s'appuie sur le flux micro en direct de capture-helper pour alimenter son pipeline vocal en production. Les itérateurs caméra puis micro encaissent donc des charges réelles, pas seulement leurs propres tests.
 
 ## Documentation
 
@@ -251,15 +253,11 @@ nommée.
 
 ## Version Rust
 
-Un crate compagnon, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs),
-réécrit la moitié microphone — énumération des périphériques et un itérateur
-`MicFrame` en streaming au-dessus de [`cpal`](https://crates.io/crates/cpal)
-— en Rust natif. Pas de caméra, pas de GUI, pas de vidéo : uniquement le
-cœur de capture audio. L'intérêt : il parle directement à
-CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire, donc il n'a besoin ni de
-`ffmpeg` ni d'un runtime Python sur la machine cible — plus adapté quand la
-capture micro en direct est embarquée dans une application Rust (application
-native, appareil embarqué) plutôt qu'orchestrée depuis Python.
+Un crate compagnon, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs), réécrit la moitié microphone en Rust natif : énumération des périphériques puis un itérateur `MicFrame` en streaming au-dessus de [`cpal`](https://crates.io/crates/cpal).
+
+Pas de caméra, pas de GUI, pas de vidéo : uniquement le cœur de capture audio.
+
+L'intérêt : il parle directement à CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire, donc il n'a besoin ni de `ffmpeg` ni d'un runtime Python sur la machine cible. Plus adapté quand la capture micro en direct est embarquée dans une application Rust — application native, appareil embarqué — plutôt qu'orchestrée depuis Python.
 
 ## Auteur
 
