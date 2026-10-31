@@ -31,7 +31,7 @@ dependencies = [
     # package has, so the dependency cannot be optional either. It used to
     # sit in the [cli] extra beside an always-available argparse CLI.
     "click>=8.1,<9",
-    "os-helper>=2.6.0,<4",
+    "os-helper>=2.6.0,<5",
     # numpy is needed by camera (frame reshape) and mic (PCM reshape).
     # Lower bound matches the rest of the suite; no upper pin for now.
     "numpy>=1.23",
