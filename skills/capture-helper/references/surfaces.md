@@ -17,15 +17,19 @@ Public API (`capture_helper.__all__`): `SourceKind`, `Source`, `MicFrame`,
 The two that matter most:
 
 ```python
-for frame in ch.iter_camera_frames(source=0):  # BGR uint8 (H, W, 3)
+cam = ch.pick_source("camera")
+for frame in ch.iter_camera_frames(cam, width=1280, height=720):  # BGR uint8 (H, W, 3)
     ...  # identical to video-helper frames
 
-for chunk in ch.iter_mic_audio(source=0):  # MicFrame of PCM samples
+mic = ch.pick_source("microphone")
+async for frame in ch.iter_mic_audio(mic):  # MicFrame, inside an async function
     ...  # identical to podcast-helper frames
 ```
 
-Both are **infinite generators** — the caller breaks out. That is deliberate:
-a live device has no end-of-file.
+Both take a `Source` dict from `pick_source` / `list_sources`, not an index.
+The camera needs a frame size to slice the raw stream; the microphone iterator
+is async. Both are **infinite** unless `max_frames` is set — the caller breaks
+out. That is deliberate: a live device has no end-of-file.
 
 Logging and file management route through `os_helper` — the suite convention.
 
@@ -37,7 +41,7 @@ Logging and file management route through `os_helper` — the suite convention.
 
 ```bash
 pip install 'capture-helper[api]'
-python -m capture_helper.api        # 127.0.0.1:8000, OpenAPI docs at /docs
+uvicorn capture_helper.api:app --port 8000   # OpenAPI docs at /docs
 ```
 
 | Method | Route | Purpose |

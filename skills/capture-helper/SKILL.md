@@ -76,24 +76,35 @@ is in System Settings › Privacy & Security, not in the code.
 Quick examples:
 
 ```bash
-capture-helper list-sources                      # cameras and mics, with indices
-capture-helper capture-camera --seconds 5 -o out.mp4
-capture-helper capture-mic --seconds 10 -o out.wav
-capture-helper scene-auto -o studio.scene.json
+capture-helper list-sources                      # cameras and mics, with indices (JSON)
+capture-helper capture-camera --width 1280 --height 720 --max-frames 30 --output-dir frames/
+capture-helper capture-mic --seconds 10 --output out.wav
+capture-helper scene-auto --output studio.scene.json
 ```
 
 ```python
+import asyncio
+
 import capture_helper as ch
 
-for frame in ch.iter_camera_frames(source=0):  # BGR uint8, like video-helper
+cam = ch.pick_source("camera", name_substring="FaceTime")  # a Source dict, not an index
+for frame in ch.iter_camera_frames(cam, width=1280, height=720):  # BGR uint8, like video-helper
     ...  # break to stop the capture
 
-for chunk in ch.iter_mic_audio(source=0):  # MicFrame PCM, like podcast-helper
-    ...
+
+async def listen():
+    mic = ch.pick_source("microphone")
+    async for frame in ch.iter_mic_audio(mic):  # MicFrame PCM, like podcast-helper
+        ...  # frame["pcm"], frame["t_abs_s"]
+
+
+asyncio.run(listen())
 ```
 
-Both iterators are infinite generators: **the caller decides when to stop**.
-Break out of the loop, or wrap them with a duration guard.
+The camera iterator needs a frame size (`width`/`height` or
+`output_width`/`output_height`) to slice the raw stream. `iter_mic_audio` is
+**async**. Both are infinite unless `max_frames` is set: **the caller decides
+when to stop**. Break out of the loop, or pass `max_frames`.
 
 For the full flag matrix and the scene-file format, read
 `references/cli-reference.md`. For the HTTP API, MCP tools and the scene GUI,
