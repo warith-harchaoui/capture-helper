@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.6.2] - 2026-11-04
+
+### Fixed
+
+- **`iter_mic_audio(to_mono=False)` read a mono microphone as stereo.** The
+  reader slices ffmpeg's pipe as two channels (a live device cannot be probed
+  for its count), but the command asked for no channel count at all, so a mono
+  built-in mic arrived as one channel and came back as half-length frames of
+  interleaved samples, with `t_abs_s` running at half the real rate. ffmpeg is
+  now told `-ac 2`: `to_mono=False` always yields `(n_samples, 2)`, a mono
+  device duplicated onto both channels. `capture-mic --no-mono` and
+  `stream-mic --no-mono` inherit the fix.
+- **Closing a microphone stream could hang forever.** A consumer that fell
+  behind left ffmpeg's stdout pipe full; asyncio paused it and never saw its
+  EOF, so `proc.wait()`, which waits for the pipes as well as the exit, blocked
+  even after the kill, holding the microphone. stdout is now drained while
+  ffmpeg is stopped, and the kill is itself bounded. Same defect, same fix as
+  podcast-helper 1.6.2.
+
+### Documentation
+
+- The skill's CLI reference described flags that do not exist (`-o`,
+  `--json`, `--channels`, `--seconds` on `capture-camera`, positional scene
+  paths) and an `.mp4` out of `capture-camera`, which writes raw `bgr24` frames
+  into `--output-dir` and needs a frame size. Its Python examples passed
+  `source=0` (the iterators take a `Source` dict) and iterated the async mic
+  iterator with a plain `for`. Rewritten from the click definitions.
+
 ## [1.6.1] - 2026-11-01
 
 ### Fixed

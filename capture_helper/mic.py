@@ -71,8 +71,9 @@ class MicFrame(TypedDict):
         Audio samples in ``[-1.0, 1.0]``, ``float32``.
 
         - Shape ``(n_samples,)`` when ``to_mono=True`` (default).
-        - Shape ``(n_samples, n_channels)`` when ``to_mono=False`` and
-          the source has more than one channel.
+        - Shape ``(n_samples, 2)`` when ``to_mono=False``: a mono
+          device is duplicated onto both channels, an interface with
+          more than two is downmixed to stereo.
     voiced : bool | None
         Always ``None`` here — VAD downstream fills it in if used.
     """
@@ -109,8 +110,8 @@ def _build_ffmpeg_cmd(
         libswresample anti-aliasing low-pass at the new Nyquist when
         the source rate differs.
     to_mono : bool
-        Downmix to one channel (ffmpeg's standard L+R matrix) or
-        preserve the source channel count verbatim.
+        Downmix to one channel (ffmpeg's standard L+R matrix), or
+        deliver exactly two channels (see :func:`iter_mic_audio`).
 
     Returns
     -------
@@ -129,10 +130,12 @@ def _build_ffmpeg_cmd(
     cmd += ["-ar", str(target_sample_rate)]
 
     # Channel handling. Downmix to mono is a deterministic, standard
-    # ffmpeg matrix. Preserving native channels lets stereo / spatial
-    # mics through unchanged.
-    if to_mono:
-        cmd += ["-ac", "1"]
+    # ffmpeg matrix. Otherwise the output is pinned to two channels: the
+    # reader cannot probe a live device for its channel count, so it slices
+    # the pipe as stereo, and a bare "native" output from a mono built-in mic
+    # would be read as stereo frames of half the duration -- garbage samples
+    # on a clock running at half speed.
+    cmd += ["-ac", "1" if to_mono else "2"]
 
     # Output: raw 32-bit float little-endian PCM to stdout.
     cmd += ["-f", "f32le", "-"]
@@ -168,9 +171,10 @@ async def iter_mic_audio(
     to_mono : bool, default True
         - True: ffmpeg standard downmix to one channel;
           ``pcm.shape == (n_samples,)``.
-        - False: preserve the source's native channel count;
-          ``pcm.shape == (n_samples, n_channels)`` (only set when the
-          source actually has more than one channel).
+        - False: two channels, ``pcm.shape == (n_samples, 2)``. A live
+          device cannot be probed for its channel count, so the output is
+          pinned to stereo: a mono device is duplicated onto both
+          channels, a larger interface is downmixed.
     frame_ms : int, default 20
         Frame duration in milliseconds. ``20`` matches Silero VAD's
         native frame size, avoiding a downstream re-buffer.
@@ -218,13 +222,10 @@ async def iter_mic_audio(
     )
     osh.debug("capture-helper: mic ffmpeg cmd: %s", " ".join(cmd))
 
-    # Channel count: known to be 1 in to_mono mode. When preserving
-    # native channels, we DON'T ffprobe the live device (probing a busy
-    # device is fragile across OSes — and in many cases the very same
-    # device can only be opened once at a time). Instead we let the
-    # caller pass ``to_mono=True`` (the common case for ASR / VAD), and
-    # for ``to_mono=False`` we assume stereo (2). A future v0.2.0 may
-    # cache a probe result during list_sources.
+    # Channel count: 1 in to_mono mode, else 2. We DON'T ffprobe the live
+    # device (probing a busy device is fragile across OSes, and many devices
+    # can only be opened once at a time), so _build_ffmpeg_cmd pins the
+    # output to the count read here with ``-ac``.
     n_channels: int = 1 if to_mono else 2
     bytes_per_sample = 4  # float32 LE
     samples_per_frame = max(1, (target_sample_rate * frame_ms) // 1000)
@@ -286,12 +287,26 @@ async def iter_mic_audio(
         # Always tear down the subprocess — leaking ffmpeg keeps the
         # mic locked for the rest of the OS session.
         if proc.returncode is None:
+            # Keep reading stdout while ffmpeg dies. A consumer that fell
+            # behind leaves the pipe full; asyncio then pauses it, never sees
+            # its EOF, and proc.wait() (which waits for the pipes as well as
+            # the exit) blocks forever, even after the kill.
+            async def _discard_stdout() -> None:
+                assert proc.stdout is not None
+                while await proc.stdout.read(1 << 16):
+                    pass
+
+            discard_task = asyncio.create_task(_discard_stdout())
             proc.terminate()
             try:
                 await asyncio.wait_for(proc.wait(), timeout=2.0)
             except asyncio.TimeoutError:
                 proc.kill()
-                await proc.wait()
+                try:
+                    await asyncio.wait_for(proc.wait(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    osh.warning("capture-helper: mic ffmpeg (pid %s) survived a kill", proc.pid)
+            discard_task.cancel()
         err = (await proc.stderr.read()).decode("utf-8", errors="replace").strip()
         if err and proc.returncode not in (0, None):
             osh.warning("capture-helper mic ffmpeg stderr: %s", err)

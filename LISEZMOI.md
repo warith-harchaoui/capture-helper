@@ -51,7 +51,7 @@ Voici précisément ce qui existe aujourd'hui.
 - `list_sources(kind=None)` : énumération multiplateforme des périphériques via `ffmpeg -list_devices` (macOS avfoundation, Windows dshow, Linux v4l2 + pulse)
 - `pick_source(kind, *, name_substring=..., index=...)` : sélectionne le premier appareil correspondant, lève `ValueError` si aucun ne correspond
 - `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)` : produit **des tableaux numpy BGR uint8 `(H, W, 3)`**, le même contrat que `video_helper.extract_frames`
-- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20)` : itérateur asynchrone produisant des `MicFrame`, le même contrat que `podcast_helper.extract_audio_stream`
+- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20, max_frames=None)` : itérateur asynchrone produisant des `MicFrame`, le même contrat que `podcast_helper.extract_audio_stream` ; `to_mono=False` rend toujours deux canaux, `(n_samples, 2)`, faute de pouvoir interroger un périphérique en direct sur son propre nombre de canaux
 - `ffmpeg_input_args(source)` : utilitaire bas niveau exposé pour qui veut câbler son propre pipeline ffmpeg
 
 **Configurateur de scène multi-sources en direct (nouveau, additif)**

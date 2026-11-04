@@ -311,3 +311,65 @@ async def test_iter_mic_audio_raises_when_ffmpeg_exits_with_zero_frames(
     with pytest.raises(RuntimeError, match="permission denied"):
         async for _ in ch.iter_mic_audio(mic_src):
             pass
+
+
+# ---------------------------------------------------------------------------
+# iter_mic_audio — channel layout and teardown
+# ---------------------------------------------------------------------------
+
+
+_MIC: ch.Source = {
+    "kind": "microphone",
+    "name": "x",
+    "index": 0,
+    "platform": "darwin",
+    "driver": "avfoundation",
+}
+
+
+def test_mic_cmd_pins_the_channel_count_the_reader_assumes() -> None:
+    """``to_mono=False`` is read as stereo, so ffmpeg must be told to emit stereo.
+
+    Without ``-ac 2`` a mono built-in mic reached the reader as one channel
+    and was sliced as two: half-length frames of interleaved garbage, with
+    ``t_abs_s`` advancing at half the real rate.
+    """
+    from capture_helper.mic import _build_ffmpeg_cmd
+
+    mono = _build_ffmpeg_cmd(_MIC, target_sample_rate=16000, to_mono=True)
+    stereo = _build_ffmpeg_cmd(_MIC, target_sample_rate=16000, to_mono=False)
+    assert mono[mono.index("-ac") + 1] == "1"
+    assert stereo[stereo.index("-ac") + 1] == "2"
+    # -ac is an output option: before -i it would apply to nothing.
+    assert stereo.index("-ac") > stereo.index("-i")
+
+
+@pytest.mark.asyncio
+async def test_closing_a_mic_stream_behind_a_full_pipe_returns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A consumer that fell behind must still be able to close the stream.
+
+    The unread stdout pipe fills, asyncio pauses it and never sees its EOF,
+    and ``proc.wait()`` used to block forever, even after the kill. ffmpeg
+    traps SIGTERM, hence the child ignoring it.
+    """
+    import sys
+
+    import capture_helper.mic as mic_mod
+
+    script = (
+        "import signal, sys, time\n"
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        "sys.stdout.buffer.write(b'\\x00' * 4_000_000)\n"
+        "sys.stdout.flush()\n"
+        "time.sleep(60)\n"
+    )
+    monkeypatch.setattr(
+        mic_mod, "_build_ffmpeg_cmd", lambda *a, **k: [sys.executable, "-c", script]
+    )
+
+    agen = ch.iter_mic_audio(_MIC)
+    await agen.__anext__()
+    await asyncio.sleep(0.3)  # let the child fill the pipe
+    await asyncio.wait_for(agen.aclose(), timeout=10.0)

@@ -49,7 +49,7 @@ Here is exactly what exists today.
 - `list_sources(kind=None)`: cross-platform device enumeration via `ffmpeg -list_devices` (macOS avfoundation, Windows dshow, Linux v4l2 + pulse)
 - `pick_source(kind, *, name_substring=..., index=...)`: picks the first matching device, raises `ValueError` if nothing matches
 - `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)`: yields **`(H, W, 3)` BGR uint8 numpy arrays**, the same contract as `video_helper.extract_frames`
-- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20)`: async iterator yielding `MicFrame`s, the same contract as `podcast_helper.extract_audio_stream`
+- `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20, max_frames=None)`: async iterator yielding `MicFrame`s, the same contract as `podcast_helper.extract_audio_stream`; `to_mono=False` always yields two channels, `(n_samples, 2)`, since a live device cannot be probed for its own count
 - `ffmpeg_input_args(source)`: a low-level helper exposed for users wiring their own ffmpeg pipelines
 
 **Live multi-source scene configurator (new, additive)**
