@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-11-05
+
 ### Fixed
 
 - **`iter_camera_frames` and `iter_mic_audio` ended quietly when ffmpeg died

@@ -186,7 +186,7 @@ périphérique.
 | v0.3.0 | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de prévisualisation en direct (JPEG / MJPEG caméra, niveau micro), configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
 | v1.0.0 | Contrats gelés | Les contrats des itérateurs cessent d'être provisoires ; la CI devient une porte bloquante plutôt qu'un rapport |
 | v1.1.0 | MCP | L'app FastAPI réexposée en outils MCP (`capture-helper-mcp`, extra `[mcp]`) |
-| **v1.6** (actuelle : 1.6.2) | Une porte par surface | Une seule ligne de commande `click` remplace le couple argparse / click ; les chaînes de la GUI passent à un catalogue `gettext` |
+| **v1.6** (actuelle : 1.6.3) | Une porte par surface | Une seule ligne de commande `click` remplace le couple argparse / click ; les chaînes de la GUI passent à un catalogue `gettext` |
 | **ensuite** | INPUT étendue | Capture d'écran ou de fenêtre ; chaîne de filtres de base (porte de bruit, gain, redimensionnement) |
 | **plus tard** | PROCESS | Mixeur multi-sources : `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, rejouant une scène enregistrée vers une sortie unique |
 

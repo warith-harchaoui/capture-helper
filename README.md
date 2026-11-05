@@ -182,7 +182,7 @@ has the details, including how to list the modes a device accepts.
 | v0.3.0 | SCENES + GUI | Scene model (save / load / validate / resolve), live-preview primitives (camera JPEG / MJPEG, mic level), and the browser-based live multi-source scene configurator at `/gui` |
 | v1.0.0 | Contracts frozen | The iterator contracts stop being provisional; CI becomes a blocking gate rather than a report |
 | v1.1.0 | MCP | The FastAPI app re-exposed as MCP tools (`capture-helper-mcp`, `[mcp]` extra) |
-| **v1.6** (current: 1.6.2) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
+| **v1.6** (current: 1.6.3) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
 | **next** | INPUT extended | Screen / window capture; basic filter chain (noise gate, gain, scale) |
 | **later** | PROCESS | Multi-source mixer: `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, running a saved scene into a single output |
 
