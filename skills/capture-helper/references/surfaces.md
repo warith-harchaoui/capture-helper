@@ -66,9 +66,10 @@ pip install 'capture-helper[mcp]'
 capture-helper-mcp                  # same app, MCP mounted at /mcp
 ```
 
-`capture-helper-mcp` binds `CAPTURE_HELPER_HOST` (default `127.0.0.1`) and
-`CAPTURE_HELPER_PORT` (default `8000`); the Docker image sets the host to
-`0.0.0.0`.
+`capture-helper-mcp` binds `--host` / `--port`, read from `CAPTURE_HELPER_HOST`
+(default `127.0.0.1`) and `CAPTURE_HELPER_PORT` (default `8000`) when the flags
+are absent; the Docker image sets the host to `0.0.0.0`.
+`capture-helper-mcp --help` prints the options and exits.
 
 `capture_helper.mcp` takes the FastAPI app from `capture_helper.api` and
 mounts `FastApiMCP` on it. Every MCP tool *is* an HTTP route, so the two

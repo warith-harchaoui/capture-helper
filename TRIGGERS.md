@@ -1,8 +1,12 @@
-# TRIGGERS: capture-helper
+# capture-helper — trigger catalogue
 
-This is the user-facing, exhaustive catalogue of what `capture-helper` can do and
-the natural-language phrasings, commands, functions, and situations that should
-invoke it.
+The exhaustive catalogue of what `capture-helper` can do and the
+natural-language phrasings, commands, functions and situations that should
+invoke it. It exists twice, identical: `TRIGGERS.md` at the repo root for
+people, `skills/capture-helper/references/triggers.md` for agents;
+`scripts/check_triggers.py` fails when the two drift apart. The
+`description:` in the skill's `SKILL.md` is what a host model actually sees and
+is capped at 1024 characters; this file carries the full list.
 
 `capture-helper` reads **live cameras and microphones** and lets you design
 reusable multi-source **scenes**. It is local-first and ffmpeg-backed: camera
@@ -12,7 +16,7 @@ transcribe, or broadcast out.
 ## Capabilities → how to invoke
 
 | Intent | CLI | Library | API |
-|--------|-----|---------|-----------|
+|--------|-----|---------|-----|
 | List cameras / microphones | `capture-helper list-sources` | `list_sources` | `GET /sources` |
 | Resolve one device | `capture-helper pick-source` | `pick_source` | `GET /pick` |
 | Print ffmpeg input argv | `capture-helper input-args` | `ffmpeg_input_args` | `GET /input-args` |
@@ -27,8 +31,10 @@ transcribe, or broadcast out.
 | Resolve a scene here | `capture-helper scene-show` | `resolve_scene_sources` | n/a |
 | Save / load a scene | (`scene-auto --output`) | `save_scene` / `load_scene` | `POST /scene/save` · `POST /scene/load` |
 
-Everything is also reachable through the CLI (`capture-helper …`,
-same flags) and the live multi-source scene configurator GUI at `GET /gui`.
+The HTTP API and the live multi-source scene configurator GUI (`GET /gui`)
+need the `[api]` extra. `capture-helper-mcp` (the `[mcp]` extra) serves the same
+app with the MCP endpoint at `/mcp`, bound to `--host` / `--port` or
+`CAPTURE_HELPER_HOST` / `CAPTURE_HELPER_PORT` (default `127.0.0.1:8000`).
 
 ## Natural-language phrasings that should fire
 
@@ -67,7 +73,7 @@ same flags) and the live multi-source scene configurator GUI at `GET /gui`.
 
 ## Command / function / driver reference
 
-- Commands: `capture-helper`.
+- Commands: `capture-helper`, `capture-helper-mcp` (`[mcp]` extra).
 - Subcommands: `list-sources pick-source input-args capture-camera capture-mic
   stream-mic scene-auto scene-validate scene-show`.
 - Functions: `list_sources pick_source ffmpeg_input_args iter_camera_frames
