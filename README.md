@@ -12,7 +12,7 @@ The two iterators are the whole idea. Each emits exactly what its sibling packag
 
 | Live source | Iterator | What it yields | Identical to |
 |---|---|---|---|
-| Camera | `iter_camera_frames` | one array per frame: a grid of pixel colours, height × width × three channels stored blue, green, red — the `BGR uint8` format OpenCV and this suite use | [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames` |
+| Camera | `iter_camera_frames` | one array per frame: a grid of pixel colours, height × width × three channels stored blue, green, red: the `BGR uint8` format OpenCV and this suite use | [video-helper](https://github.com/warith-harchaoui/video-helper)'s `extract_frames` |
 | Microphone | `iter_mic_audio` | `MicFrame` chunks: small blocks of raw audio measurements taken over time, in the standard pulse-code modulation (PCM) format | [podcast-helper](https://github.com/warith-harchaoui/podcast-helper)'s `extract_audio_stream` |
 
 That table is the payoff: because both iterators speak the shapes their siblings speak, code written against a recorded video file or a downloaded podcast runs unchanged against a live camera or microphone.
@@ -48,15 +48,15 @@ Here is exactly what exists today.
 - `MicFrame` typed dict, mirroring [`podcast_helper.PcmFrame`](https://github.com/warith-harchaoui/podcast-helper)
 - `list_sources(kind=None)`: cross-platform device enumeration via `ffmpeg -list_devices` (macOS avfoundation, Windows dshow, Linux v4l2 + pulse)
 - `pick_source(kind, *, name_substring=..., index=...)`: picks the first matching device, raises `ValueError` if nothing matches
-- `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)`: yields **`(H, W, 3)` BGR uint8 numpy arrays**, the same contract as `video_helper.extract_frames`
+- `iter_camera_frames(source, *, width=..., height=..., fps=..., output_width=..., output_height=..., pad_color="black", max_frames=None)`: yields **`(H, W, 3)` BGR uint8 numpy arrays**, the same contract as `video_helper.extract_frames`
 - `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20, max_frames=None)`: async iterator yielding `MicFrame`s, the same contract as `podcast_helper.extract_audio_stream`; `to_mono=False` always yields two channels, `(n_samples, 2)`, since a live device cannot be probed for its own count
 - `ffmpeg_input_args(source)`: a low-level helper exposed for users wiring their own ffmpeg pipelines
 
-**Live multi-source scene configurator (new, additive)**
+**Live multi-source scene configurator (additive)**
 
 - **Browser GUI at `GET /gui`**: enumerate all cameras and microphones, drop them onto a 16:9 canvas, **live-preview each camera** as an in-browser MJPEG stream, watch **live microphone level meters**, drag them into place, then **save the visual design as a reusable JSON scene** (and load one back). No build step: vanilla JS + Tailwind CDN.
 - **Scene model**: `Scene` / `SceneSource` typed dicts, `new_scene(...)`, `add_source(...)`, `validate_scene(...)`, `save_scene(...)`, `load_scene(...)`, `resolve_scene_sources(...)` (maps a scene onto the current machine's devices), `scene_from_available_devices(...)`.
-- **Live-preview primitives**: `snapshot_jpeg(source)` (one live JPEG), `iter_camera_jpeg(source)` (JPEG stream for MJPEG), `mic_level(source)` (RMS / peak dBFS for a VU meter), `frame_to_jpeg(frame)`.
+- **Live-preview primitives**: `snapshot_jpeg(source)` (one live JPEG), `iter_camera_jpeg(source)` (JPEG stream for MJPEG), `mic_level(source)` (RMS and peak, linear and in dBFS, for a VU meter), `frame_to_jpeg(frame)`.
 - **Scene CLI**: `capture-helper scene-auto` (auto-populate from devices), `scene-validate`, `scene-show` (reports how each source resolves here).
 - **Scene / preview HTTP endpoints**: `GET /scene`, `POST /scene/save`, `POST /scene/load`, `GET /preview/camera.jpg`, `GET /preview/camera.mjpeg`, `GET /preview/mic-level`.
 
@@ -115,7 +115,8 @@ You still need `ffmpeg` on PATH for device enumeration and live capture to retur
 pip install capture-helper
 
 # Optional surfaces
-pip install "capture-helper[api]"       # FastAPI HTTP surface
+pip install "capture-helper[api]"       # FastAPI HTTP surface + browser GUI
+pip install "capture-helper[mcp]"       # MCP server (pulls in [api])
 ```
 
 ### From source (no PyPI)
@@ -127,6 +128,7 @@ pip install -e .
 
 # Optional surfaces
 pip install -e ".[api]"
+pip install -e ".[mcp]"
 ```
 
 ## Quick start
@@ -134,7 +136,7 @@ pip install -e ".[api]"
 The shortest useful path: find a device, read frames off it. No scene file, no
 browser, no extra install. `list_sources` only shells out to
 `ffmpeg -list_devices`, so it is safe to call on a machine with nothing plugged
-in — it returns `[]` instead of raising.
+in: it returns `[]` instead of raising.
 
 ```python
 import capture_helper as ch
@@ -180,7 +182,7 @@ has the details, including how to list the modes a device accepts.
 | v0.3.0 | SCENES + GUI | Scene model (save / load / validate / resolve), live-preview primitives (camera JPEG / MJPEG, mic level), and the browser-based live multi-source scene configurator at `/gui` |
 | v1.0.0 | Contracts frozen | The iterator contracts stop being provisional; CI becomes a blocking gate rather than a report |
 | v1.1.0 | MCP | The FastAPI app re-exposed as MCP tools (`capture-helper-mcp`, `[mcp]` extra) |
-| **v1.6.0** (current) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
+| **v1.6** (current: 1.6.2) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
 | **next** | INPUT extended | Screen / window capture; basic filter chain (noise gate, gain, scale) |
 | **later** | PROCESS | Multi-source mixer: `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, running a saved scene into a single output |
 
@@ -213,6 +215,10 @@ curl http://localhost:8000/sources
 curl -o frames.zip \
     'http://localhost:8000/capture/camera?output_width=320&output_height=240&max_frames=10'
 
+# MCP: the same app with MCP mounted at /mcp, bound to
+# CAPTURE_HELPER_HOST / CAPTURE_HELPER_PORT (default 127.0.0.1:8000)
+capture-helper-mcp
+
 # Browser GUI: live multi-source scene configurator
 uvicorn capture_helper.api:app --port 8000
 # open http://localhost:8000/gui  (or just http://localhost:8000/)
@@ -231,8 +237,8 @@ The page speaks **French and English**. `GET /gui?lang=fr|en` picks one, a flag
 in the header toggles between them, and a code the locale file does not carry
 falls back to the default rather than failing. Every string lives in
 [`capture_helper/locales/fr/LC_MESSAGES/capture_helper.po`](https://github.com/warith-harchaoui/capture-helper/blob/main/capture_helper/locales/fr/LC_MESSAGES/capture_helper.po),
-a standard `gettext` catalogue read through `os_helper.Catalog` — the loader
-shared across the suite — so
+a standard `gettext` catalogue read through `os_helper.Catalog`, the loader
+shared across the suite, so
 translating the page never means opening a Python file.
 
 ### Use it as an agent skill
@@ -241,18 +247,18 @@ translating the page never means opening a Python file.
 skill**, so an agent can reach for it on your behalf. See
 [`skills/README.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/skills/README.md) to install it (symlink into
 `~/.claude/skills/` and `~/.opencode/skills/`), and
-[`TRIGGERS.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md) for the exhaustive trigger catalogue —
+[`TRIGGERS.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md) for the exhaustive trigger catalogue.
 `scripts/check_triggers.py` keeps the skill's description in sync with it, and
 the test suite fails if a capability stops being named.
 
 ## Rust rewrite
 
 A companion crate, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs),
-rewrites the microphone half — device enumeration plus a streaming `MicFrame`
-iterator on top of [`cpal`](https://crates.io/crates/cpal) — in native Rust.
+rewrites the microphone half in native Rust: device enumeration plus a streaming `MicFrame`
+iterator on top of [`cpal`](https://crates.io/crates/cpal).
 No camera, no GUI, no video, just the audio-capture core. The interest: it
 talks to CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire directly, so it needs
-neither `ffmpeg` nor a Python runtime on the target machine — a better fit
+neither `ffmpeg` nor a Python runtime on the target machine. That makes it the better fit
 when live mic capture is embedded inside a Rust application (a native app, an
 embedded device) rather than orchestrated from Python.
 

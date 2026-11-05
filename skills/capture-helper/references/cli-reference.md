@@ -91,4 +91,6 @@ capture-helper scene-validate --input SCENE.json
   `scene-auto --output` print the path they wrote.
 - A library error (no matching device, a malformed scene) prints one
   `Error: …` line on stderr and exits 1. A microphone that delivers nothing
-  (permission denied, most often) makes `capture-mic` / `stream-mic` exit 2.
+  (permission denied, device busy) is one of those library errors:
+  `iter_mic_audio` raises `RuntimeError: ffmpeg exited before yielding a
+  frame`, so `capture-mic` / `stream-mic` print it and exit 1.

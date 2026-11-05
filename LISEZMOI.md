@@ -12,7 +12,7 @@ Les deux itérateurs sont toute l'idée. Chacun produit exactement ce que produi
 
 | Source en direct | Itérateur | Ce qu'il produit | Identique à |
 |---|---|---|---|
-| Caméra | `iter_camera_frames` | un tableau par image : une grille de couleurs de pixels, hauteur × largeur × trois canaux rangés bleu, vert, rouge — le format `BGR uint8` qu'utilisent OpenCV puis le reste de la suite | `extract_frames` chez [video-helper](https://github.com/warith-harchaoui/video-helper) |
+| Caméra | `iter_camera_frames` | un tableau par image : une grille de couleurs de pixels, hauteur × largeur × trois canaux rangés bleu, vert, rouge : le format `BGR uint8` qu'utilisent OpenCV et le reste de la suite | `extract_frames` chez [video-helper](https://github.com/warith-harchaoui/video-helper) |
 | Micro | `iter_mic_audio` | des `MicFrame` : de petits blocs de mesures audio brutes prises dans le temps, au format standard de modulation par impulsions codées (PCM) | `extract_audio_stream` chez [podcast-helper](https://github.com/warith-harchaoui/podcast-helper) |
 
 Ce tableau est tout le bénéfice : comme les deux itérateurs parlent les formes que parlent leurs jumelles, un code écrit pour un fichier vidéo enregistré ou pour un podcast téléchargé tourne sans modification sur une caméra ou un micro en direct.
@@ -27,9 +27,9 @@ L'interface graphique se pose par-dessus. On glisse plusieurs sources en direct 
 
 **Local-first par conception.** capture-helper s'exécute entièrement sur votre machine : les données caméra et micro sont capturées et traitées en local, jamais envoyées vers un service tiers, sans télémétrie, sans compte, sans verrouillage cloud. Fait partie de la suite [AI Helpers](https://github.com/warith-harchaoui/ai-helpers) : la souveraineté sur vos données grâce à l'open source local-first.
 
-**Éprouvé en production, pas un prototype.** Chaque changement passe par la même porte avant publication : la suite de tests complète puis un passage de lint tournent en intégration continue (voir le badge CI ci-dessus). Seul un passage vert est tagué puis publié sur PyPI selon le versionnage sémantique.
+**Éprouvé en production, pas un prototype.** Chaque changement passe par la même porte avant publication : la suite de tests complète et un passage de lint tournent en intégration continue (voir le badge CI ci-dessus). Seul un passage vert est tagué et publié sur PyPI selon le versionnage sémantique.
 
-En aval, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) s'appuie sur le flux micro en direct de capture-helper pour alimenter son pipeline vocal en production. Les itérateurs caméra puis micro encaissent donc des charges réelles, pas seulement leurs propres tests.
+En aval, [vocal-helper](https://github.com/warith-harchaoui/vocal-helper) s'appuie sur le flux micro en direct de capture-helper pour alimenter son pipeline vocal en production. Les itérateurs caméra et micro encaissent donc des charges réelles, pas seulement leurs propres tests.
 
 ## Documentation
 
@@ -50,15 +50,15 @@ Voici précisément ce qui existe aujourd'hui.
 - Dict typé `MicFrame`, miroir de [`podcast_helper.PcmFrame`](https://github.com/warith-harchaoui/podcast-helper)
 - `list_sources(kind=None)` : énumération multiplateforme des périphériques via `ffmpeg -list_devices` (macOS avfoundation, Windows dshow, Linux v4l2 + pulse)
 - `pick_source(kind, *, name_substring=..., index=...)` : sélectionne le premier appareil correspondant, lève `ValueError` si aucun ne correspond
-- `iter_camera_frames(source, *, width=..., height=..., output_width=..., output_height=..., fps=..., max_frames=...)` : produit **des tableaux numpy BGR uint8 `(H, W, 3)`**, le même contrat que `video_helper.extract_frames`
+- `iter_camera_frames(source, *, width=..., height=..., fps=..., output_width=..., output_height=..., pad_color="black", max_frames=None)` : produit **des tableaux numpy BGR uint8 `(H, W, 3)`**, le même contrat que `video_helper.extract_frames`
 - `iter_mic_audio(source, *, target_sample_rate=16000, to_mono=True, frame_ms=20, max_frames=None)` : itérateur asynchrone produisant des `MicFrame`, le même contrat que `podcast_helper.extract_audio_stream` ; `to_mono=False` rend toujours deux canaux, `(n_samples, 2)`, faute de pouvoir interroger un périphérique en direct sur son propre nombre de canaux
 - `ffmpeg_input_args(source)` : utilitaire bas niveau exposé pour qui veut câbler son propre pipeline ffmpeg
 
-**Configurateur de scène multi-sources en direct (nouveau, additif)**
+**Configurateur de scène multi-sources en direct (additif)**
 
 - **GUI navigateur à `GET /gui`** : énumère toutes les caméras et tous les micros, déposez-les sur un canevas 16:9, **prévisualisez chaque caméra en direct** via un flux MJPEG, suivez les **vumètres de niveau micro en direct**, glissez et arrangez les tuiles, puis **enregistrez le tout comme une scène JSON réutilisable** (et rechargez-en une). Sans étape de build : JS vanilla + Tailwind CDN.
 - **Modèle de scène** : dicts typés `Scene` / `SceneSource`, `new_scene(...)`, `add_source(...)`, `validate_scene(...)`, `save_scene(...)`, `load_scene(...)`, `resolve_scene_sources(...)` (mappe une scène sur les appareils de la machine courante), `scene_from_available_devices(...)`.
-- **Primitives de prévisualisation en direct** : `snapshot_jpeg(source)` (un JPEG live), `iter_camera_jpeg(source)` (flux JPEG pour MJPEG), `mic_level(source)` (RMS ou crête dBFS pour un vumètre), `frame_to_jpeg(frame)`.
+- **Primitives de prévisualisation en direct** : `snapshot_jpeg(source)` (un JPEG live), `iter_camera_jpeg(source)` (flux JPEG pour MJPEG), `mic_level(source)` (RMS et crête, en linéaire comme en dBFS, pour un vumètre), `frame_to_jpeg(frame)`.
 - **CLI de scène** : `capture-helper scene-auto` (remplissage automatique depuis les appareils), `scene-validate`, `scene-show` (rapporte comment chaque source se résout ici).
 - **Points d'entrée HTTP scène et prévisualisation** : `GET /scene`, `POST /scene/save`, `POST /scene/load`, `GET /preview/camera.jpg`, `GET /preview/camera.mjpeg`, `GET /preview/mic-level`.
 
@@ -117,7 +117,8 @@ Nous recommandons de travailler dans un environnement Python dédié. Si vous ne
 pip install capture-helper
 
 # Surfaces optionnelles
-pip install "capture-helper[api]"       # surface HTTP FastAPI
+pip install "capture-helper[api]"       # surface HTTP FastAPI + GUI navigateur
+pip install "capture-helper[mcp]"       # serveur MCP (inclut [api])
 ```
 
 ### Depuis les sources (sans PyPI)
@@ -129,6 +130,7 @@ pip install -e .
 
 # Surfaces optionnelles
 pip install -e ".[api]"
+pip install -e ".[mcp]"
 ```
 
 ## Prise en main rapide
@@ -184,7 +186,7 @@ périphérique.
 | v0.3.0 | SCÈNES + GUI | Modèle de scène (save / load / validate / resolve), primitives de prévisualisation en direct (JPEG / MJPEG caméra, niveau micro), configurateur de scène multi-sources en direct dans le navigateur à `/gui` |
 | v1.0.0 | Contrats gelés | Les contrats des itérateurs cessent d'être provisoires ; la CI devient une porte bloquante plutôt qu'un rapport |
 | v1.1.0 | MCP | L'app FastAPI réexposée en outils MCP (`capture-helper-mcp`, extra `[mcp]`) |
-| **v1.6.0** (version actuelle) | Une porte par surface | Une seule ligne de commande `click` remplace le couple argparse / click ; les chaînes de la GUI passent à un catalogue `gettext` |
+| **v1.6** (actuelle : 1.6.2) | Une porte par surface | Une seule ligne de commande `click` remplace le couple argparse / click ; les chaînes de la GUI passent à un catalogue `gettext` |
 | **ensuite** | INPUT étendue | Capture d'écran ou de fenêtre ; chaîne de filtres de base (porte de bruit, gain, redimensionnement) |
 | **plus tard** | PROCESS | Mixeur multi-sources : `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, rejouant une scène enregistrée vers une sortie unique |
 
@@ -217,6 +219,10 @@ curl http://localhost:8000/sources
 curl -o frames.zip \
     'http://localhost:8000/capture/camera?output_width=320&output_height=240&max_frames=10'
 
+# MCP : la même app avec MCP monté sur /mcp, liée à
+# CAPTURE_HELPER_HOST / CAPTURE_HELPER_PORT (par défaut 127.0.0.1:8000)
+capture-helper-mcp
+
 # GUI navigateur : configurateur de scène multi-sources en direct
 uvicorn capture_helper.api:app --port 8000
 # ouvrez http://localhost:8000/gui  (ou juste http://localhost:8000/)
@@ -236,8 +242,8 @@ un drapeau dans l'en-tête bascule de l'une à l'autre et un code que le fichier
 de locales ne porte pas retombe sur la langue par défaut au lieu d'échouer.
 Toutes les chaînes vivent dans
 [`capture_helper/locales/fr/LC_MESSAGES/capture_helper.po`](https://github.com/warith-harchaoui/capture-helper/blob/main/capture_helper/locales/fr/LC_MESSAGES/capture_helper.po),
-un catalogue `gettext` standard lu par `os_helper.Catalog` — le chargeur
-partagé par la suite — si bien que
+un catalogue `gettext` standard lu par `os_helper.Catalog`, le chargeur
+partagé par la suite, si bien que
 traduire la page n'oblige jamais à ouvrir un fichier Python.
 
 ### En tant que skill d'agent
@@ -247,17 +253,17 @@ traduire la page n'oblige jamais à ouvrir un fichier Python.
 [`skills/README.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/skills/README.md) pour l'installer (liens
 symboliques vers `~/.claude/skills/` et `~/.opencode/skills/`) et
 [`TRIGGERS.md`](https://github.com/warith-harchaoui/capture-helper/blob/main/TRIGGERS.md) pour le catalogue exhaustif des
-déclencheurs — `scripts/check_triggers.py` maintient la description du skill
+déclencheurs. `scripts/check_triggers.py` maintient la description du skill
 alignée dessus ; la suite de tests échoue si une capacité cesse d'être
 nommée.
 
 ## Version Rust
 
-Un crate compagnon, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs), réécrit la moitié microphone en Rust natif : énumération des périphériques puis un itérateur `MicFrame` en streaming au-dessus de [`cpal`](https://crates.io/crates/cpal).
+Un crate compagnon, [`capture-helper-rs`](https://github.com/warith-harchaoui/capture-helper-rs), réécrit la moitié microphone en Rust natif : énumération des périphériques et un itérateur `MicFrame` en streaming au-dessus de [`cpal`](https://crates.io/crates/cpal).
 
 Pas de caméra, pas de GUI, pas de vidéo : uniquement le cœur de capture audio.
 
-L'intérêt : il parle directement à CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire, donc il n'a besoin ni de `ffmpeg` ni d'un runtime Python sur la machine cible. Plus adapté quand la capture micro en direct est embarquée dans une application Rust — application native, appareil embarqué — plutôt qu'orchestrée depuis Python.
+L'intérêt : il parle directement à CoreAudio/WASAPI/ALSA-PulseAudio-JACK-PipeWire, donc il n'a besoin ni de `ffmpeg` ni d'un runtime Python sur la machine cible. Plus adapté quand la capture micro en direct est embarquée dans une application Rust (application native, appareil embarqué) plutôt qu'orchestrée depuis Python.
 
 ## Auteur
 

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- The skill's CLI reference said a microphone that delivers nothing makes
+  `capture-mic` / `stream-mic` exit 2. Since `iter_mic_audio` raises
+  `RuntimeError` when ffmpeg exits before a frame, that case prints one
+  `Error:` line and exits 1.
+- The skill's camera examples (`SKILL.md`, `surfaces.md`) omitted `fps`, the
+  value without which `avfoundation` blocks on macOS; they now pass one.
+- README / LISEZMOI: the `[mcp]` extra is in the install section, the
+  `capture-helper-mcp` host and port variables (`CAPTURE_HELPER_HOST`,
+  `CAPTURE_HELPER_PORT`) are named, `iter_camera_frames` shows `pad_color`,
+  `mic_level` returns RMS and peak (not one or the other), and the roadmap's
+  current line reads 1.6.2.
+- CONTRIBUTING counted two CI jobs; there are three (the Python 3.10 floor job).
+  `skills/README.md` still described two CLIs.
+- LISEZMOI / PAYSAGE: several "et" had been turned into "puis" or "avec",
+  which changed the meaning ("les itérateurs caméra puis micro").
+
 ## [1.6.2] - 2026-11-04
 
 ### Fixed

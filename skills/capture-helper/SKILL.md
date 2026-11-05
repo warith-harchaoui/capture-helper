@@ -77,7 +77,7 @@ Quick examples:
 
 ```bash
 capture-helper list-sources                      # cameras and mics, with indices (JSON)
-capture-helper capture-camera --width 1280 --height 720 --max-frames 30 --output-dir frames/
+capture-helper capture-camera --width 1280 --height 720 --fps 30 --max-frames 30 --output-dir frames/
 capture-helper capture-mic --seconds 10 --output out.wav
 capture-helper scene-auto --output studio.scene.json
 ```
@@ -88,7 +88,7 @@ import asyncio
 import capture_helper as ch
 
 cam = ch.pick_source("camera", name_substring="FaceTime")  # a Source dict, not an index
-for frame in ch.iter_camera_frames(cam, width=1280, height=720):  # BGR uint8, like video-helper
+for frame in ch.iter_camera_frames(cam, width=1280, height=720, fps=30):  # BGR, like video-helper
     ...  # break to stop the capture
 
 
@@ -102,7 +102,8 @@ asyncio.run(listen())
 ```
 
 The camera iterator needs a frame size (`width`/`height` or
-`output_width`/`output_height`) to slice the raw stream. `iter_mic_audio` is
+`output_width`/`output_height`) to slice the raw stream, and on macOS an `fps`
+the device advertises: `avfoundation` blocks instead of failing without one. `iter_mic_audio` is
 **async**. Both are infinite unless `max_frames` is set: **the caller decides
 when to stop**. Break out of the loop, or pass `max_frames`.
 

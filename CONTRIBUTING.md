@@ -91,15 +91,16 @@ Releases live in [`CHANGELOG.md`](CHANGELOG.md) following the
 release is tagged `vX.Y.Z` in git and published as a GitHub release.
 
 Cross-helper dependencies (`os-helper`, `video-helper`, `podcast-helper`, …)
-are declared as PyPI version ranges (`os-helper>=2.0.0,<3`), the same as any
+are declared as PyPI version ranges (`os-helper>=2.6.0,<5` today), the same as any
 other dependency.
 
 ## CI
 
-GitHub Actions runs two jobs on every push and pull request: `pytest` on a
-single Python version (3.12, the fast blocking gate; the full version sweep
-runs locally before a push, see below) and a separate `ruff` job (`ruff check`
-plus `ruff format --check`). Both jobs must pass before a merge.
+GitHub Actions runs three jobs on every push and pull request: `pytest` on a
+single Python version (3.12, the fast blocking gate; the full sweep, integration
+tests included, runs locally before a push, see below), a separate `ruff` job
+(`ruff check` plus `ruff format --check`) and a floor job that installs the
+package on Python 3.10 and imports it. All three must pass before a merge.
 
 ## Running tests locally
 

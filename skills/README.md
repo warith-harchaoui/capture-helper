@@ -13,7 +13,7 @@ skills/capture-helper/
 ├── SKILL.md                  # name + trigger-rich description + instructions
 └── references/
     ├── cli-reference.md      # full subcommand + flag matrix, output contract
-    ├── surfaces.md           # library, two CLIs, HTTP API, MCP, and the scene-configurator GUI
+    ├── surfaces.md           # library, CLI, HTTP API, MCP, and the scene-configurator GUI
     └── triggers.md           # exhaustive, auditable trigger catalogue
 ```
 
