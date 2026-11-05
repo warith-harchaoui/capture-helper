@@ -14,7 +14,7 @@ Implementation
   (``-f avfoundation`` / ``-f pulse`` / ``-f alsa`` / ``-f dshow``)
   built by :func:`capture_helper.sources.ffmpeg_input_args`.
 - Asks ffmpeg to resample to ``target_sample_rate`` and downmix to mono
-  (or preserve the source channel count) and emit raw ``f32le`` PCM
+  (or deliver exactly two channels) and emit raw ``f32le`` PCM
   to stdout. We read fixed-size byte blocks and yield
   :class:`MicFrame`-typed dicts.
 - Async generator — matches
@@ -195,6 +195,12 @@ async def iter_mic_audio(
         ``frame_ms`` / ``target_sample_rate`` is non-positive.
     FileNotFoundError
         Raised by ffmpeg / asyncio if ``ffmpeg`` isn't on PATH.
+    RuntimeError
+        If ffmpeg exits before the first frame (permission denied, device
+        busy), or exits non-zero later (device unplugged, driver error).
+        Frames already yielded stay valid; the exception says the stream
+        stopped short. Stopping early yourself (``max_frames``, ``break``)
+        never raises.
 
     Examples
     --------
@@ -271,6 +277,18 @@ async def iter_mic_audio(
                         "app, or unsupported capture mode. ffmpeg stderr: " + (err or "(empty)")
                     ) from exc
                 else:
+                    # stdout closed on its own. A clean end only if ffmpeg
+                    # says so: a device unplugged or a driver error also
+                    # closes it, and the caller must not take a truncated
+                    # stream for a complete one.
+                    await proc.wait()
+                    if proc.returncode != 0:
+                        stderr_bytes = await proc.stderr.read()
+                        err = stderr_bytes.decode("utf-8", errors="replace").strip()
+                        raise RuntimeError(
+                            f"ffmpeg exited with code {proc.returncode} after "
+                            f"{t_abs_s:.2f}s of audio: {err or '(no stderr)'}"
+                        ) from exc
                     break
 
             arr = np.frombuffer(raw, dtype=np.float32).copy()

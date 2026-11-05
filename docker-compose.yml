@@ -11,7 +11,7 @@
 services:
   capture-helper:
     build: .
-    image: capture-helperocal
+    image: capture-helper:local
     ports:
       - "${CAPTURE_HELPER_PORT:-8000}:8000"
     environment:

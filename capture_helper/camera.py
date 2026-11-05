@@ -214,7 +214,9 @@ def iter_camera_frames(
     RuntimeError
         If ffmpeg exits before the first frame is decoded (typical when
         the OS denied camera permission or the device is in use by
-        another process).
+        another process), or exits non-zero later (camera unplugged, driver
+        error). Frames already yielded stay valid. Stopping early yourself
+        (``max_frames``, ``break``) never raises.
 
     Examples
     --------
@@ -294,6 +296,15 @@ def iter_camera_frames(
                         "ffmpeg exited before yielding a frame — common causes: "
                         "OS camera permission denied, device busy in another app, "
                         "or unsupported capture mode. ffmpeg stderr: " + (err or "(empty)")
+                    )
+                # stdout closed on its own. That is a clean end only if ffmpeg
+                # says so: a camera unplugged or a driver error also closes it,
+                # and the caller must not take a truncated stream for a whole one.
+                proc.wait()
+                if proc.returncode != 0:
+                    raise RuntimeError(
+                        f"ffmpeg exited with code {proc.returncode} after {yielded} "
+                        f"frame(s): {err or '(no stderr)'}"
                     )
                 break
 

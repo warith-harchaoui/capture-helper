@@ -373,3 +373,120 @@ async def test_closing_a_mic_stream_behind_a_full_pipe_returns(
     await agen.__anext__()
     await asyncio.sleep(0.3)  # let the child fill the pipe
     await asyncio.wait_for(agen.aclose(), timeout=10.0)
+
+
+# ---------------------------------------------------------------------------
+# ffmpeg dying mid-stream — the iterators must say the stream stopped short
+# ---------------------------------------------------------------------------
+
+
+def _child(script: str) -> list[str]:
+    import sys
+
+    return [sys.executable, "-c", script]
+
+
+_TWO_MIC_FRAMES_THEN_FAIL = (
+    "import sys\n"
+    "sys.stdout.buffer.write(b'\\x00' * (320 * 4 * 2))\n"
+    "sys.stdout.flush()\n"
+    "sys.stderr.write('device unplugged')\n"
+    "sys.exit(1)\n"
+)
+
+
+@pytest.mark.asyncio
+async def test_mic_stream_raises_when_ffmpeg_fails_after_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A device lost mid-recording must not look like a complete recording."""
+    import capture_helper.mic as mic_mod
+
+    monkeypatch.setattr(
+        mic_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(_TWO_MIC_FRAMES_THEN_FAIL)
+    )
+    got = 0
+    with pytest.raises(RuntimeError, match="device unplugged"):
+        async for _ in ch.iter_mic_audio(_MIC):
+            got += 1
+    assert got == 2
+
+
+@pytest.mark.asyncio
+async def test_mic_stream_ends_quietly_when_ffmpeg_exits_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import capture_helper.mic as mic_mod
+
+    ok = _TWO_MIC_FRAMES_THEN_FAIL.replace("sys.exit(1)", "sys.exit(0)")
+    monkeypatch.setattr(mic_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(ok))
+    frames = [f async for f in ch.iter_mic_audio(_MIC)]
+    assert len(frames) == 2
+
+
+@pytest.mark.asyncio
+async def test_mic_stream_stopped_by_consumer_never_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import capture_helper.mic as mic_mod
+
+    monkeypatch.setattr(
+        mic_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(_TWO_MIC_FRAMES_THEN_FAIL)
+    )
+    frames = [f async for f in ch.iter_mic_audio(_MIC, max_frames=1)]
+    assert len(frames) == 1
+
+
+_CAM: ch.Source = {
+    "kind": "camera",
+    "name": "x",
+    "index": 0,
+    "platform": "darwin",
+    "driver": "avfoundation",
+}
+
+_TWO_CAM_FRAMES_THEN_FAIL = (
+    "import sys\n"
+    "sys.stdout.buffer.write(b'\\x00' * (4 * 2 * 3 * 2))\n"
+    "sys.stdout.flush()\n"
+    "sys.stderr.write('camera unplugged')\n"
+    "sys.exit(1)\n"
+)
+
+
+def test_camera_stream_raises_when_ffmpeg_fails_after_frames(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import capture_helper.camera as cam_mod
+
+    monkeypatch.setattr(
+        cam_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(_TWO_CAM_FRAMES_THEN_FAIL)
+    )
+    got = 0
+    with pytest.raises(RuntimeError, match="camera unplugged"):
+        for _ in ch.iter_camera_frames(_CAM, output_width=4, output_height=2):
+            got += 1
+    assert got == 2
+
+
+def test_camera_stream_ends_quietly_when_ffmpeg_exits_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import capture_helper.camera as cam_mod
+
+    ok = _TWO_CAM_FRAMES_THEN_FAIL.replace("sys.exit(1)", "sys.exit(0)")
+    monkeypatch.setattr(cam_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(ok))
+    frames = list(ch.iter_camera_frames(_CAM, output_width=4, output_height=2))
+    assert len(frames) == 2
+
+
+def test_camera_stream_stopped_by_consumer_never_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import capture_helper.camera as cam_mod
+
+    monkeypatch.setattr(
+        cam_mod, "_build_ffmpeg_cmd", lambda *a, **k: _child(_TWO_CAM_FRAMES_THEN_FAIL)
+    )
+    frames = list(ch.iter_camera_frames(_CAM, output_width=4, output_height=2, max_frames=1))
+    assert len(frames) == 1

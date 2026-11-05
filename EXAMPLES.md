@@ -406,10 +406,9 @@ print(len(jpg), "bytes", jpg[:3])
 # 9475 bytes b'\xff\xd8\xff'
 ```
 
-`snapshot_jpeg(cam)` is the shorter spelling of that, but it takes no `fps`
-argument and so cannot pass one down to the camera — on an `avfoundation`
-device that needs an explicit frame rate it blocks. Prefer the two lines above
-until that is fixed.
+`snapshot_jpeg(cam, fps=30)` is the shorter spelling of that. Its `fps`
+defaults to 10, the preview rate, so a bare `snapshot_jpeg(cam)` still asks an
+`avfoundation` camera for an explicit frame rate.
 
 `frame_to_jpeg` encodes an array you already hold, so it touches no device at
 all:
@@ -574,6 +573,11 @@ app. On macOS, grant Camera / Microphone access to the program *running* Python
 — Terminal, iTerm, your IDE — in System Settings → Privacy & Security; the
 prompt goes to the host application, not to Python. On Linux, check your user
 is in the `video` group for `/dev/video*`.
+
+**`RuntimeError: ffmpeg exited with code N after …`.** The stream had started,
+then ffmpeg died (device unplugged, driver error). The frames already received
+are valid; the exception says the stream stopped short of where you asked. A
+`max_frames` limit or a `break` of your own never raises.
 
 **`ValueError: iter_camera_frames requires (width, height) and/or
 (output_width, output_height)`.** Raw `bgr24` off a pipe carries no header, so

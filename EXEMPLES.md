@@ -421,11 +421,9 @@ print(len(jpg), "bytes", jpg[:3])
 # 9475 bytes b'\xff\xd8\xff'
 ```
 
-`snapshot_jpeg(cam)` est l'écriture courte de ce qui précède, mais elle
-n'accepte aucun argument `fps` et ne peut donc en transmettre aucun à la
-caméra : sur un périphérique `avfoundation` qui réclame une cadence explicite,
-elle se bloque. Préférez les deux lignes ci-dessus tant que ce n'est pas
-corrigé.
+`snapshot_jpeg(cam, fps=30)` est l'écriture courte de ce qui précède. Son
+`fps` vaut 10 par défaut (la cadence d'aperçu) : un simple `snapshot_jpeg(cam)`
+demande donc lui aussi une cadence explicite à une caméra `avfoundation`.
 
 `frame_to_jpeg` encode un tableau que vous tenez déjà : elle ne touche aucun
 périphérique.
@@ -597,6 +595,11 @@ Microphone au programme qui *exécute* Python — Terminal, iTerm, votre IDE —
 dans Réglages Système → Confidentialité et sécurité : la demande va à
 l'application hôte, pas à Python. Sur Linux, vérifiez que votre utilisateur est
 dans le groupe `video` pour `/dev/video*`.
+
+**`RuntimeError: ffmpeg exited with code N after …`.** Le flux avait démarré
+puis ffmpeg est mort (périphérique débranché, erreur de pilote). Les images déjà
+reçues restent valides ; l'exception dit que le flux s'est arrêté avant le terme
+demandé. Une limite `max_frames` ou un `break` de votre part ne lève jamais.
 
 **`ValueError: iter_camera_frames requires (width, height) and/or
 (output_width, output_height)`.** Du `bgr24` brut sorti d'un tuyau ne porte

@@ -147,12 +147,29 @@ def test_stream_mic_writes_raw_pcm_to_stdout(monkeypatch, capsysbinary):
     assert out == np.concatenate(frames).astype(np.float32).tobytes()
 
 
-def test_stream_mic_no_frames_exits_2(monkeypatch, capsysbinary):
-    """No captured audio (e.g. a permission denial) exits 2 rather than crashing."""
-    monkeypatch.setattr(cli_mod, "iter_mic_audio", _fake_frames([]))
+def test_stream_mic_dead_device_exits_1_with_one_error_line(monkeypatch, capsysbinary):
+    """A microphone that delivers nothing raises in ``iter_mic_audio``: one ``Error:`` line, exit 1."""
+
+    async def _dead(*_a, **_k):
+        raise RuntimeError("ffmpeg exited before yielding a frame")
+        yield  # pragma: no cover - makes this an async generator
+
+    monkeypatch.setattr(cli_mod, "iter_mic_audio", _dead)
     monkeypatch.setattr(cli_mod, "pick_source", lambda *a, **k: {"kind": "microphone", "index": 0})
 
-    assert _run_argv(monkeypatch, ["stream-mic", "--seconds", "1"]) == 2
+    assert _run_argv(monkeypatch, ["stream-mic", "--seconds", "1"]) == 1
+    captured = capsysbinary.readouterr()
+    assert captured.out == b""
+    assert captured.err.decode().startswith("Error: ffmpeg exited before yielding a frame")
+
+
+@pytest.mark.parametrize("sub", ["capture-mic", "stream-mic"])
+def test_no_mono_help_says_two_channels(sub):
+    """``--no-mono`` pins two channels since 1.6.2; it does not keep the source's count."""
+    result = CliRunner().invoke(cli_mod.cli, [sub, "--help"])
+    text = " ".join(result.output.split())
+    assert "preserve source channels" not in text
+    assert "two channels" in text
 
 
 # ---------------------------------------------------------------------------

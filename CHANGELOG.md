@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`iter_camera_frames` and `iter_mic_audio` ended quietly when ffmpeg died
+  mid-stream.** A camera or microphone unplugged, or a driver error, closes
+  ffmpeg's output exactly like a normal end, so the caller got a truncated
+  stream it could not tell from a complete one. Both now raise `RuntimeError`
+  after the frames already delivered when ffmpeg exits non-zero; stopping early
+  yourself (`max_frames`, `break`) never raises. `capture-mic` / `stream-mic`
+  print one `Error:` line and exit 1.
+- **`snapshot_jpeg` had no `fps`**, so it could not ask an `avfoundation`
+  camera for an explicit frame rate and could stall on macOS. It takes `fps`
+  (default 10, the preview rate) and passes it down; `GET /preview/camera.jpg`
+  inherits it.
+- `capture-mic --no-mono` / `stream-mic --no-mono` help said "preserve source
+  channels"; since 1.6.2 they deliver two channels.
+- `capture-mic` / `stream-mic` carried an exit-2 branch for "no audio
+  captured" that could not run (`iter_mic_audio` raises first); removed.
+- `docker-compose.yml` tagged the image `capture-helperocal`; it is now
+  `capture-helper:local`.
+- A comment in the Linux device listing promised an ALSA fallback that does
+  not exist; only PulseAudio sources are listed.
+
 ### Documentation
 
 - The skill's CLI reference said a microphone that delivers nothing makes

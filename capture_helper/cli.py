@@ -218,10 +218,9 @@ async def _mic_to_wav_async(
         max_frames=max_frames,
     ):
         chunks.append(frame["pcm"])
-    if not chunks:
-        click.echo("capture-helper: no audio captured (permission denied?)", err=True)
-        return 2
-
+    # iter_mic_audio raises when ffmpeg delivers nothing (permission denied,
+    # device busy), so ``chunks`` is never empty here; main() turns that
+    # RuntimeError into one ``Error:`` line and exit 1.
     audio = np.concatenate(chunks, axis=0)
     if audio.ndim == 1:
         n_channels = 1
@@ -255,7 +254,7 @@ async def _mic_to_wav_async(
     "--mono/--no-mono",
     default=True,
     show_default=True,
-    help="Downmix to mono or preserve source channels.",
+    help="Downmix to one channel, or deliver two channels (a mono device is duplicated).",
 )
 def capture_mic_cmd(
     name: str | None,
@@ -304,7 +303,6 @@ async def _stream_mic_to_stdout_async(
     convention used everywhere else in this codebase.
     """
     out = sys.stdout.buffer
-    yielded = 0
     try:
         async for frame in iter_mic_audio(
             src,
@@ -316,12 +314,10 @@ async def _stream_mic_to_stdout_async(
             pcm = np.ascontiguousarray(frame["pcm"], dtype=np.float32)
             out.write(pcm.tobytes())
             out.flush()
-            yielded += 1
     except BrokenPipeError:
         return 0
-    if yielded == 0:
-        click.echo("capture-helper: no audio captured (permission denied?)", err=True)
-        return 2
+    # A microphone that delivers nothing raises RuntimeError in iter_mic_audio;
+    # main() turns it into one ``Error:`` line and exit 1.
     return 0
 
 
@@ -342,7 +338,7 @@ async def _stream_mic_to_stdout_async(
     "--mono/--no-mono",
     default=True,
     show_default=True,
-    help="Downmix to mono or preserve source channels.",
+    help="Downmix to one channel, or deliver two channels (a mono device is duplicated).",
 )
 def stream_mic_cmd(
     name: str | None,

@@ -212,7 +212,12 @@ def _parse_dshow_devices(stderr: str) -> list[Source]:
 
 
 def _list_linux_devices() -> list[Source]:
-    """Linux: cameras via /dev/video*, mics via pactl / arecord (best-effort)."""
+    """Linux: cameras via /dev/video*, mics via pactl (best-effort).
+
+    Only PulseAudio sources are listed: there is no ALSA enumeration, so a
+    host without ``pactl`` reports no microphone. An ALSA device can still be
+    captured by building its ``Source`` by hand with ``driver="alsa"``.
+    """
     out: list[Source] = []
     # Cameras: /dev/video0, /dev/video1, ... (v4l2)
     import glob
@@ -227,7 +232,7 @@ def _list_linux_devices() -> list[Source]:
                 "driver": "v4l2",
             }
         )
-    # Microphones: prefer pulse, fall back to alsa.
+    # Microphones: PulseAudio only (no ALSA fallback, see the docstring).
     if shutil.which("pactl") is not None:
         try:
             proc = subprocess.run(

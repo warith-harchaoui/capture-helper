@@ -197,6 +197,7 @@ def snapshot_jpeg(
     *,
     output_width: int = DEFAULT_PREVIEW_WIDTH,
     output_height: int = DEFAULT_PREVIEW_HEIGHT,
+    fps: float = DEFAULT_PREVIEW_FPS,
     quality: int = DEFAULT_JPEG_QUALITY,
 ) -> bytes:
     """
@@ -209,6 +210,9 @@ def snapshot_jpeg(
         :func:`list_sources`.
     output_width, output_height : int
         Preview size (aspect-preserving fit-and-pad, per the camera iterator).
+    fps : float, default 10.0
+        Capture-side frame rate. ``avfoundation`` (macOS) needs one: left to
+        its default, a built-in camera rejects the rate or never delivers.
     quality : int, default 5
         JPEG quality passed to :func:`frame_to_jpeg`.
 
@@ -234,6 +238,7 @@ def snapshot_jpeg(
         source,
         output_width=output_width,
         output_height=output_height,
+        fps=fps,
         max_frames=1,
     ):
         return frame_to_jpeg(frame, quality=quality)

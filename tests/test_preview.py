@@ -133,3 +133,22 @@ def test_iter_camera_jpeg_validates_before_opening_the_device() -> None:
     )
     with pytest.raises(ValueError, match="inverted"):
         next(gen)
+
+
+def test_snapshot_jpeg_asks_the_camera_for_a_frame_rate(monkeypatch) -> None:
+    """avfoundation needs an explicit frame rate; without one a macOS camera stalls or fails."""
+    import capture_helper.preview as preview_mod
+
+    seen: dict = {}
+
+    def _fake_iter(source, **kwargs):
+        seen.update(kwargs)
+        yield np.zeros((2, 4, 3), dtype=np.uint8)
+
+    monkeypatch.setattr(preview_mod, "iter_camera_frames", _fake_iter)
+    monkeypatch.setattr(preview_mod, "frame_to_jpeg", lambda frame, quality: b"jpg")
+    cam = {"kind": "camera", "name": "x", "index": 0, "platform": "darwin", "driver": "avfoundation"}
+    assert preview_mod.snapshot_jpeg(cam) == b"jpg"
+    assert seen["fps"] == preview_mod.DEFAULT_PREVIEW_FPS
+    preview_mod.snapshot_jpeg(cam, fps=5.0)
+    assert seen["fps"] == 5.0
