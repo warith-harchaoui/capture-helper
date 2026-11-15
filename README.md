@@ -2,7 +2,7 @@
 
 [🇫🇷](https://github.com/warith-harchaoui/capture-helper/blob/main/LISEZMOI.md) · [🇬🇧](https://github.com/warith-harchaoui/capture-helper/blob/main/README.md)
 
-[![CI](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/warith-harchaoui/capture-helper/blob/main/LICENSE) [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](#) [![Local-first](https://img.shields.io/badge/privacy-local--first-2f6f5e.svg)](#the-promise)
+[![CI](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml/badge.svg)](https://github.com/warith-harchaoui/capture-helper/actions/workflows/ci.yml) [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/warith-harchaoui/capture-helper/blob/main/LICENSE) [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#) [![Local-first](https://img.shields.io/badge/privacy-local--first-2f6f5e.svg)](#the-promise)
 
 `Capture Helper` belongs to a collection of libraries called `AI Helpers` developed for building Artificial Intelligence.
 
@@ -98,7 +98,7 @@ asyncio.run(listen())
 
 ## Installation
 
-**Prerequisites**: **Python 3.10-3.13**, **git** and **ffmpeg**, cross-platform:
+**Prerequisites**: **Python 3.10 or later**, **git** and **ffmpeg**, cross-platform:
 
 - 🍎 **macOS** ([Homebrew](https://brew.sh)): `brew install python git ffmpeg`
 - 🐧 **Ubuntu/Debian**: `sudo apt update && sudo apt install -y python3 python3-pip git ffmpeg`
@@ -182,7 +182,7 @@ has the details, including how to list the modes a device accepts.
 | v0.3.0 | SCENES + GUI | Scene model (save / load / validate / resolve), live-preview primitives (camera JPEG / MJPEG, mic level), and the browser-based live multi-source scene configurator at `/gui` |
 | v1.0.0 | Contracts frozen | The iterator contracts stop being provisional; CI becomes a blocking gate rather than a report |
 | v1.1.0 | MCP | The FastAPI app re-exposed as MCP tools (`capture-helper-mcp`, `[mcp]` extra) |
-| **v1.6** (current: 1.6.4) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
+| **v1.6** (current: 1.6.5) | One door per surface | A single `click` command line replaces the argparse / click pair, and the GUI's strings move to a `gettext` catalogue |
 | **next** | INPUT extended | Screen / window capture; basic filter chain (noise gate, gain, scale) |
 | **later** | PROCESS | Multi-source mixer: `mix_audio([sources], levels=[...])` + `compose_video([sources], layout=...)`, running a saved scene into a single output |
 
